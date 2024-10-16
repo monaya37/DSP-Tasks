@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox, Text
 from DSP_Task2_TEST_functions import *
 import matplotlib.pyplot as plt
 
-# %%
+#Functions
 def plot_signal(samples):
     indices = list(samples.keys())
     values = list(samples.values())
@@ -15,7 +15,6 @@ def plot_signal(samples):
     plt.grid()
     plt.show()
 
-# Read Files
 def read_signals(file_path):
     samples = {}
     with open(file_path, 'r') as file:
@@ -39,11 +38,9 @@ def read_signals(file_path):
 def add_signals(signal_a, signal_b):
     combined = {}
 
-    # Add values from the first signal
     for index, value in signal_a[2].items():
         combined[index] = value
 
-    # Add values from the second signal
     for index, value in signal_b[2].items():
         if index in combined:
             combined[index] += value  # Sum the values for overlapping keys
@@ -59,16 +56,14 @@ def add_signals(signal_a, signal_b):
 def sub_signals(signal_a, signal_b):
     combined = {}
 
-    # Add values from the first signal
     for index, value in signal_a[2].items():
         combined[index] = value
 
-    # Subtract values from the second signal
     for index, value in signal_b[2].items():
         if index in combined:
-            combined[index] -= value  # Subtract the values for overlapping keys
+            combined[index] -= value  
         else:
-            combined[index] = -value  # Add new key-value pairs
+            combined[index] = -value 
 
     combined = dict(sorted(combined.items()))
     indices = list(combined.keys())
@@ -121,7 +116,6 @@ class SignalApp:
         self.root.configure(padx=20, pady=20)
 
         # Create GUI Components
-        # Buttons
         button_width = 45  
         pad_y = 5
 
@@ -170,37 +164,33 @@ class SignalApp:
     def upload_file1(self):
         file_path = filedialog.askopenfilename(title="Select Signal 1 File")
         self.signalA = read_signals(file_path)
-        #messagebox.showinfo("File Upload", f"Signal 1 uploaded: {file_path}")
 
     def upload_file2(self):
         file_path = filedialog.askopenfilename(title="Select Signal 2 File")
         self.signalB = read_signals(file_path)
-        #messagebox.showinfo("File Upload", f"Signal 2 uploaded: {file_path}")
 
     def add_signals(self):
         if self.signalA is None or self.signalB is None:
             messagebox.showwarning("Missing Files", "Please upload both Signal files!")
             return
 
-        add_indices, add_values, samples = add_signals(self.signalA, self.signalB)
-        result = "Addition Result:\n"
-        result += "\n".join([f"{idx}: {val}" for idx, val in zip(add_indices, add_values)])
-        self.display_result(result)
-        self.plot_signals(samples)
-        AddSignalSamplesAreEqual("Signal1.txt", "Signal2.txt", add_indices, add_values)
-        
+        operation = "Addition Result:\n"
 
+        signal = add_signals(self.signalA, self.signalB)
+        self.display_result(signal, operation)
+        AddSignalSamplesAreEqual("Signal1.txt", "Signal2.txt", signal[0], signal[1])
+        
+    
     def sub_signals(self):
         if self.signalA is None or self.signalB is None:
             messagebox.showwarning("Missing Files", "Please upload both Signal files!")
             return
 
-        sub_indices, sub_values, samples = sub_signals(self.signalA, self.signalB)
-        result = "Subtraction Result:\n"
-        result += "\n".join([f"{idx}: {val}" for idx, val in zip(sub_indices, sub_values)])
-        self.display_result(result)
-        self.plot_signals(samples)
-        SubSignalSamplesAreEqual("Signal1.txt", "Signal2.txt", sub_indices, sub_values)
+        operation = "Subtraction Result:\n"
+
+        signal = sub_signals(self.signalA, self.signalB)
+        self.display_result(signal, operation)
+        SubSignalSamplesAreEqual("Signal1.txt", "Signal2.txt", signal[0], signal[1])
 
 
     def multiply_signals(self):
@@ -209,12 +199,11 @@ class SignalApp:
             return
 
         constant = int(self.ConstantInput.get())
-        mul_indices, mul_values, samples = multiply_signals(self.signalA, constant)
-        result = f"Multiplication Result (by {constant}):\n"
-        result += "\n".join([f"{idx}: {val}" for idx, val in zip(mul_indices, mul_values)])
-        self.display_result(result)
-        self.plot_signals(samples)
-        MultiplySignalByConst(5, mul_indices, mul_values)
+        operation = f"Multiplication Result (by {constant}):\n"
+
+        signal = multiply_signals(self.signalA, constant)
+        self.display_result(signal, operation)
+        MultiplySignalByConst(5, signal[0], signal[1])
 
 
 
@@ -224,12 +213,11 @@ class SignalApp:
             return
 
         constant = int(self.ConstantInput.get()) 
-        shift_indices, shift_values, samples = shift_signal(self.signalA, constant)
-        result = f"Shift Result (by {constant}):\n"
-        result += "\n".join([f"{idx}: {val}" for idx, val in zip(shift_indices, shift_values)])
-        self.display_result(result)
-        self.plot_signals(samples)
-        ShiftSignalByConst(constant, shift_indices, shift_values)
+        operation = f"Shift Result (by {constant}):\n"
+
+        signal = shift_signal(self.signalA, constant)
+        self.display_result(signal, operation)
+        ShiftSignalByConst(constant, signal[0], signal[1])
 
 
     def fold_signals(self):
@@ -237,21 +225,24 @@ class SignalApp:
             messagebox.showwarning("Missing File", "Please upload Signal A file!")
             return
 
-        fold_indices, fold_values, samples = fold_signals(self.signalA)
-        result = "Fold Result:\n"
-        result += "\n".join([f"{idx}: {val}" for idx, val in zip(fold_indices, fold_values)])
-        self.display_result(result)
-        self.plot_signals(samples)
-        Folding(fold_indices, fold_values)
+        operation = "Fold Result:\n"
+
+        signal = fold_signals(self.signalA)
+        self.display_result(signal, operation)
+        Folding(signal[0], signal[1])
 
 
     def plot_signals(self, samples):
         plot_signal(samples)
 
 
-    def display_result(self, result):
+    def display_result(self, signal, result):
+        result += "\n".join([f"{idx}: {val}" for idx, val in zip(signal[0], signal[1])])
+
         self.result_text.delete(1.0, tk.END)  # Clear previous results
         self.result_text.insert(tk.END, result)
+        self.plot_signals(signal[2])
+
 
 # Main Application
 if __name__ == "__main__":
