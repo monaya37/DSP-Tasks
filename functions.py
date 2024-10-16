@@ -90,7 +90,7 @@ def multiply_signals(signal_a, constant):
 def shift_signal(signal_a, constant):
     combined = {}
     for index, value in signal_a[2].items():
-        combined[index + constant] = value
+        combined[index + -1* constant] = value
 
     combined = dict(sorted(combined.items()))
     indices = list(combined.keys())
