@@ -229,7 +229,7 @@ class SignalApp:
         result += "\n".join([f"{idx}: {val}" for idx, val in zip(shift_indices, shift_values)])
         self.display_result(result)
         self.plot_signals(samples)
-        ShiftSignalByConst(-3, shift_indices, shift_values)
+        ShiftSignalByConst(constant, shift_indices, shift_values)
 
 
     def fold_signals(self):
