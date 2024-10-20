@@ -2,7 +2,10 @@ import matplotlib.pyplot as plt
 from DSP_Task2_TEST_functions import *
 
 
-class Signal:
+class functions:
+
+  
+
 
     # Functions
     def plot_signal(samples):
@@ -32,7 +35,7 @@ class Signal:
 
             indices = list(samples.keys())
             values = list(samples.values())
-            Signal.plot_signal(samples)
+            functions.plot_signal(samples)
         return indices, values, samples
 
     def add_signals(signal_a, signal_b):
