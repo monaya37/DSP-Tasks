@@ -35,7 +35,6 @@ class functions:
 
             indices = list(samples.keys())
             values = list(samples.values())
-            functions.plot_signal(samples)
         return indices, values, samples
 
     def add_signals(signal_a, signal_b):

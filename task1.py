@@ -2,6 +2,10 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, Text
 from functions import *
+import matplotlib.pyplot as plt
+from PIL import Image, ImageTk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import os
 
 class Task1:
     def __init__(self, parent):
@@ -47,8 +51,8 @@ class Task1:
         self.label_entry_frame.grid(row=4, column=1, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
         # Result Text Area
-        self.result_text = Text(self.frame, width=80, height=15)
-        self.result_text.grid(row=5, column=0, columnspan=2, pady=10)
+        # self.result_text = Text(self.frame, width=80, height=15)
+        # self.result_text.grid(row=5, column=0, columnspan=2, pady=10)
 
     def display(self):
         self.frame.grid(row=1, column=0, columnspan=2, sticky='nsew')
@@ -59,87 +63,107 @@ class Task1:
     def upload_file1(self):
         file_path = filedialog.askopenfilename(title="Select Signal 1 File")
         self.signalA = functions.read_signals(file_path)
+        self.plot_signals(self.signalA[2]) 
 
     def upload_file2(self):
         file_path = filedialog.askopenfilename(title="Select Signal 2 File")
         self.signalB = functions.read_signals(file_path)
+        self.plot_signals(self.signalA[2]) 
+
 
     def add_signals(self):
         if self.signalA is None or self.signalB is None:
             messagebox.showwarning("Missing Files", "Please upload both Signal files!")
             return
 
-        operation = "Addition Result:\n"
         signal = functions.add_signals(self.signalA, self.signalB)
-        self.display_result(signal, operation)
+        self.plot_signals(signal[2]) 
         AddSignalSamplesAreEqual("Signal1.txt", "Signal2.txt", signal[0], signal[1])
 
       
         
     
-    def sub_signals():
-        if self.signalA is None or task1.signalB is None:
+    def sub_signals(self):
+        if self.signalA is None or self.signalB is None:
             messagebox.showwarning("Missing Files", "Please upload both Signal files!")
             return
 
-        operation = "Subtraction Result:\n"
         signal = functions.sub_signals(self.signalA, self.signalB)
-        self.display_result(signal, operation)
+        self.plot_signals(signal[2])  
+
         SubSignalSamplesAreEqual("Signal1.txt", "Signal2.txt", signal[0], signal[1])
 
 
-    def multiply_signals():
+    def multiply_signals(self):
         if self.signalA is None:
             messagebox.showwarning("Missing File", "Please upload Signal A file!")
             return
 
         constant = int(self.ConstantInput.get())
-        operation = f"Multiplication Result (by {constant}):\n"
 
         signal = functions.multiply_signals(self.signalA, constant)
-        self.display_result(signal, operation)
+        self.plot_signals(signal[2])  
+        
         MultiplySignalByConst(constant, signal[0], signal[1])
 
 
 
-    def shift_signal():
+    def shift_signal(self):
         if self.signalA is None:
             messagebox.showwarning("Missing File", "Please upload Signal A file!")
             return
 
         constant = int(self.ConstantInput.get()) 
-        operation = f"Shift Result (by {constant}):\n"
 
         signal = functions.shift_signal(self.signalA, constant)
-        self.display_result(signal, operation)
+        self.plot_signals(signal[2])  
+
         ShiftSignalByConst(constant, signal[0], signal[1])
 
 
-    def fold_signals():
+    def fold_signals(self):
         if self.signalA is None:
             messagebox.showwarning("Missing File", "Please upload Signal A file!")
             return
 
-        operation = "Fold Result:\n"
-        signal = functions.fold_signals(self.signalA)
-        self.display_result(signal, operation)
+        signal = functions.fold_signals(self.signalA)   
+        self.plot_signals(signal[2])  
         Folding(signal[0], signal[1])
 
+    def display_plot(self, plot_file):
+        # Open the image using PIL
+        img = Image.open(plot_file)
+        img = img.resize((400, 300)) # Resize if needed
+        self.plot_image = ImageTk.PhotoImage(img)
 
-    def plot_signals(samples):
+            # Create or update the label to display the image
+        if hasattr(self, 'plot_label'):
+            self.plot_label.configure(image=self.plot_image)
+            self.plot_label.image = self.plot_image  # Keep a reference
+        else:
+            self.plot_label = tk.Label(self.frame, image=self.plot_image)
+            self.plot_label.grid(row=6, column=0, columnspan=2, pady=10)  # Adjust row/column as needed
+
+
+    def plot_signals(self, samples):
         indices = list(samples.keys())
         values = list(samples.values())
-        plt.figure(figsize=(10, 5))
-        plt.stem(indices, values)
-        plt.title("Signal Visualization")
-        plt.xlabel("Index")
-        plt.ylabel("Value")
-        plt.grid()
-        plt.show()
+        
+        # Create a figure
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.stem(indices, values)
+        ax.set_title("Signal Visualization")
+        ax.set_xlabel("Index")
+        ax.set_ylabel("Value")
+        ax.grid()
 
+        # Clear previous plot if it exists
+        if hasattr(self, 'canvas'):
+            self.canvas.get_tk_widget().destroy()  # Remove the previous canvas
 
-    def display_result(signal, result):
-        result += "\n".join([f"{idx}: {val}" for idx, val in zip(signal[0], signal[1])])
-        self.result_text.delete(1.0, tk.END)  # Clear previous results
-        self.result_text.insert(tk.END, result)
-        self.plot_signals(signal[2])
+        # Create a canvas to display the plot
+        self.canvas = FigureCanvasTkAgg(fig, master=self.frame)  # Use your main frame or window as the master
+        self.canvas.draw()
+        self.canvas.get_tk_widget().grid(row=6, column=0, columnspan=2, pady=10)  # Adjust row/column as needed
+ 
+

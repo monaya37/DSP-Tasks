@@ -8,13 +8,16 @@ class App:
         self.root.title("Digital Signal Processing GUI")
         self.root.configure(padx=20, pady=20)
 
+  # Create frames for buttons and main content
+        self.button_frame = tk.Frame(root)
+        self.button_frame.grid(row=0, column=0, columnspan=2, sticky='ew')
+
         # Create buttons to switch between tabs using grid
-        self.tab1_button = tk.Button(root, text="Task 1", command=self.show_task1)
-        self.tab1_button.grid(row=0, column=0, padx=5, pady=5)
+        self.tab1_button = tk.Button(self.button_frame, text="Task 1", command=self.show_task1)
+        self.tab1_button.grid(row=0, column=0, padx=(0, 0), pady=5)
 
-        self.tab2_button = tk.Button(root, text="Task 2", command=self.show_task2)
-        self.tab2_button.grid(row=0, column=1, padx=5, pady=5)
-
+        self.tab2_button = tk.Button(self.button_frame, text="Task 2", command=self.show_task2)
+        self.tab2_button.grid(row=0, column=1, padx=(0, 0), pady=5)
         # Create frames for each tab
         self.task1_frame = Task1(self.root)  # Task1 is now a class
         self.task2_frame = tk.Frame(root)  # Placeholder for Task 2
