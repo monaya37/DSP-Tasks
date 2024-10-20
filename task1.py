@@ -68,7 +68,7 @@ class Task1:
     def upload_file2(self):
         file_path = filedialog.askopenfilename(title="Select Signal 2 File")
         self.signalB = functions.read_signals(file_path)
-        self.plot_signals(self.signalA[2]) 
+        self.plot_signals(self.signalB[2]) 
 
 
     def add_signals(self):
