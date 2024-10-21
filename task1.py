@@ -50,9 +50,6 @@ class Task1:
 
         self.label_entry_frame.grid(row=4, column=1, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
-        # Result Text Area
-        # self.result_text = Text(self.frame, width=80, height=15)
-        # self.result_text.grid(row=5, column=0, columnspan=2, pady=10)
 
     def display(self):
         self.frame.grid(row=1, column=0, columnspan=2, sticky='nsew')
@@ -130,19 +127,6 @@ class Task1:
         self.plot_signals(signal[2])  
         Folding(signal[0], signal[1])
 
-    def display_plot(self, plot_file):
-        # Open the image using PIL
-        img = Image.open(plot_file)
-        img = img.resize((400, 300)) # Resize if needed
-        self.plot_image = ImageTk.PhotoImage(img)
-
-            # Create or update the label to display the image
-        if hasattr(self, 'plot_label'):
-            self.plot_label.configure(image=self.plot_image)
-            self.plot_label.image = self.plot_image  # Keep a reference
-        else:
-            self.plot_label = tk.Label(self.frame, image=self.plot_image)
-            self.plot_label.grid(row=6, column=0, columnspan=2, pady=10)  # Adjust row/column as needed
 
 
     def plot_signals(self, samples):
