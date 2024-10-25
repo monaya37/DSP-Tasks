@@ -75,7 +75,7 @@ class Task1:
 
         signal = functions.add_signals(self.signalA, self.signalB)
         self.plot_signals(signal[2]) 
-        AddSignalSamplesAreEqual("Signal1.txt", "Signal2.txt", signal[0], signal[1])
+        AddSignalSamplesAreEqual("task1_files\\Signal1.txt", "task1_files\\Signal2.txt", signal[0], signal[1])
 
       
         
@@ -88,7 +88,7 @@ class Task1:
         signal = functions.sub_signals(self.signalA, self.signalB)
         self.plot_signals(signal[2])  
 
-        SubSignalSamplesAreEqual("Signal1.txt", "Signal2.txt", signal[0], signal[1])
+        SubSignalSamplesAreEqual("task1_files\\Signal1.txt", "task1_files\\Signal2.txt", signal[0], signal[1])
 
 
     def multiply_signals(self):
