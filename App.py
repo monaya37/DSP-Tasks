@@ -10,7 +10,7 @@ class App:
         self.root.title("Digital Signal Processing GUI")
         self.root.configure(padx=20, pady=20)
 
-  # Create frames for buttons and main content
+        # Create frames for buttons and main content
         self.button_frame = tk.Frame(root)
         self.button_frame.grid(row=0, column=0, columnspan=2, sticky='ew')
 
@@ -23,31 +23,29 @@ class App:
 
         self.tab2_button = tk.Button(self.button_frame, text="Task 3", command=self.show_task3)
         self.tab2_button.grid(row=0, column=2, padx=(0, 0), pady=5)
+
         # Create frames for each tab
         self.task1_frame = Task1(self.root)  # Task1 is now a class
-        self.task2_frame = Task2(self.root)  # Placeholder for Task 2
-        self.task3_frame = Task3(self.root)  # Placeholder for Task 2
+        self.task2_frame = Task2(self.root)  #
+        self.task3_frame = Task3(self.root)  
 
         self.show_task1()  # Show Task 1 by default
 
     def show_task1(self):
         self.task2_frame.hide()  # Hide Task 2
-        self.task3_frame.hide()  # Hide Task 2
+        self.task3_frame.hide()  # Hide Task 3
         self.task1_frame.display()  # Call display method of Task1
 
-        # self.task1_frame(row=1, column=0, columnspan=2, sticky='nsew')  # Show Task 1
 
     def show_task2(self):
-        self.task1_frame.hide()  # Hide Task 1
-        self.task3_frame.hide()  # Hide Task 1
-        # Add Task 2 UI components here
-        self.task2_frame.display() # Show Task 2
+        self.task1_frame.hide()  
+        self.task3_frame.hide()  
+        self.task2_frame.display() 
 
     def show_task3(self):
-        self.task1_frame.hide()  # Hide Task 1
-        self.task2_frame.hide()  # Hide Task 1
-        # Add Task 2 UI components here
-        self.task3_frame.display() # Show Task 2
+        self.task1_frame.hide()  
+        self.task2_frame.hide()  
+        self.task3_frame.display() 
 
 # Main Application
 if __name__ == "__main__":
