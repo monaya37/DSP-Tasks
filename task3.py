@@ -20,7 +20,7 @@ class Task3:
 
         # Input fields for amplitude, frequency, phase, sampling
         self.num_of_bits = tk.DoubleVar(value=1.0)
-        self.num_of_levels = tk.DoubleVar(value=0.0)
+        self.num_of_levels = tk.DoubleVar(value=4.0)
 
         ttk.Label(self.frame, text="Number of bits:").grid(row=2, column=0, pady=5)
         ttk.Entry(self.frame, textvariable=self.num_of_bits).grid(row=2, column=1, pady=5)
@@ -32,7 +32,9 @@ class Task3:
         generate_button = ttk.Button(self.frame, text="Generate Signal", command= self.quantize_and_encode)
         generate_button.grid(row=6, column=0, columnspan=2, pady=10)
 
-        self.ranges = list()
+        self.intervals = dict()
+        self.signal = None
+
 
 
     def display(self):
@@ -42,10 +44,55 @@ class Task3:
         self.frame.grid_forget()
 
     def quantize_and_encode(self):
-        signal = functions.read_signals("task3_files\Quan1_input.txt")
-        delta = max(signal[1]) - min(signal[1])        
-        delta = delta / self.num_of_levels
+        self.signal = functions.read_signals("task3_files\\Quan1_input.txt")
+        self.claculate_intervals()
+        self.update_values()
+        self.plot_signal()
 
-        for i in range(1, self.num_of_levels+1):
-            #TO DO:
-            # self.ranges.append(min((signal[1] + (delta * i))/2 ))
+    def claculate_intervals(self):
+        self.intervals.clear()
+        num_of_levels = self.num_of_levels.get()
+        num_of_bits = self.num_of_bits.get()
+        
+        start = min(self.signal[1])
+        end = max(self.signal[1])
+        delta = end - start     
+        delta = round(delta / float(num_of_levels), 2)
+
+
+        end = round(start + delta, 2)
+        for i in range(int(num_of_levels)):
+            x = (start + (end)) / 2
+            self.intervals[(start,end)] =  round(x, 2)
+            start = end
+            end = round(start + delta,2)
+        print('intervals: ', self.intervals.keys())
+
+    def update_values(self):
+        values = list()
+        found = False
+        for element in self.signal[1]:
+            for start, end in self.intervals.keys():
+                if start <= element <= end:
+                    values.append(self.intervals[(start, end)])
+                    found = True
+                    break
+            if(found == False):
+                print('element: ', element)
+            found = False
+
+        print('values: ', self.signal[1])
+        self.signal[1].clear()
+        self.signal[1].extend(values)
+        print('updated values: ', self.signal[1])
+        
+
+    def plot_signal(self):
+        self.ax.clear()
+        self.ax.plot(self.signal[0], self.signal[1])
+        self.canvas.draw()
+
+           
+
+                    
+
