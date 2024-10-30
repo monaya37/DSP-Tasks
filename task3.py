@@ -42,15 +42,9 @@ class Task3:
         generate_button = ttk.Button(self.frame, text="Generate Signal", command=self.choose_test)
         generate_button.grid(row=6, column=0, columnspan=2, pady=10)
 
-        self.intervals = dict()
         self.signal = None
         self.midpoints = []
-        #LISTS:
-        #intervals[index] = [(start,end)]
-        #encoded values [00, 01, 10, 11]
-        #quantized values [0.85, 0.75, 0.55 ..]
-        #errors
-        #intervals
+
 
 
     def display(self):
@@ -66,7 +60,6 @@ class Task3:
         levels = self.num_of_levels.get()
         bits = self.num_of_bits.get()
 
-
         if levels == 0:  
             self.num_of_levels.set(math.pow(2, int(bits))) #display it in text box
             levels = self.num_of_levels.get()
@@ -76,32 +69,12 @@ class Task3:
             bits = self.num_of_bits.get()
 
 
-
-        #DRY, still thinking of a name to exract these in a function
         if(test == "Test1"):
-            self.signal = functions.read_signals("task3_files\\Quan1_input.txt")  
-            intervals = self.get_intervals(levels)
-            quantized_values, errors = self.quantize_values(intervals)
-            binary_numbers = self.get_binary_numbers(bits)
-            intervals_indecies, encoded_values = self.encode_values(binary_numbers, quantized_values)
-
-            self.plot_signal()
-            self.print_resutls(intervals_indecies,encoded_values,quantized_values,errors)
+            intervals_indecies,encoded_values,quantized_values,errors = self.process_quantization("task3_files\\Quan1_input.txt", levels, bits)
             QuanTest1.QuantizationTest1('task3_files\\Quan1_Out.txt', encoded_values, quantized_values)
 
-
-
-
         else:
-            self.signal = functions.read_signals("task3_files\\Quan2_input.txt")
-            
-            intervals = self.get_intervals(levels)
-            quantized_values, errors = self.quantize_values(intervals)
-            binary_numbers = self.get_binary_numbers(bits)
-            intervals_indecies, encoded_values = self.encode_values(binary_numbers, quantized_values)
-
-            self.plot_signal()
-            self.print_resutls(intervals_indecies,encoded_values,quantized_values,errors)
+            intervals_indecies,encoded_values,quantized_values,errors = self.process_quantization("task3_files\\Quan2_input.txt", levels, bits)
             QuanTest2.QuantizationTest2('task3_files\\Quan2_Out.txt',intervals_indecies,encoded_values,quantized_values,errors)
 
 
@@ -110,10 +83,23 @@ class Task3:
         self.midpoints.clear()
 
 
+    def process_quantization(self, path, levels, bits):
+        self.signal = functions.read_signals(path)
+            
+        intervals = self.get_intervals(levels)
+        quantized_values, errors = self.quantize_values(intervals)
+        binary_numbers = self.get_binary_numbers(bits)
+        intervals_indecies, encoded_values = self.encode_values(binary_numbers, quantized_values)
+
+        self.plot_signal()
+        self.print_resutls(intervals_indecies, encoded_values, quantized_values, errors)
+        
+        return intervals_indecies, encoded_values, quantized_values, errors
+    
 
     def get_intervals(self, levels):
 
-        intervals = {}
+        intervals = []
 
         start = min(self.signal[1])  
         end = max(self.signal[1])
@@ -122,7 +108,7 @@ class Task3:
 
         end = round(start + delta, 3)
         for i in range(int(levels)):  
-            intervals[i+1] = (start, end)
+            intervals.append((start, end))
             start = end
             end = round(start + delta, 3)
 
@@ -132,16 +118,18 @@ class Task3:
 
 
     def quantize_values(self, intervals):
+
         quantized_values = []
         errors = []
+
         for element in self.signal[1]: #y value
-            for start, end in intervals.values(): 
+            for start, end in intervals: 
 
                 midpoint = round((start + end) / 2, 3) 
                 self.midpoints.append(midpoint)
 
                 if start <= element <= end:
-                    quantized_values.append(midpoint) #mid point
+                    quantized_values.append(midpoint) 
                     errors.append(round(midpoint - element, 3)) #error
                     break
 
@@ -163,7 +151,9 @@ class Task3:
     
 
     def encode_values(self, binary_numbers, quantized_values):
+
         encoded = {}
+
         i = 0
         for value in sorted(set(self.midpoints)):
             encoded[value] = [i+1, binary_numbers[i]]  
