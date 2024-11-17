@@ -15,40 +15,46 @@ class Task1:
 
         # Create GUI Components but do not grid them yet
         self.frame = tk.Frame(self.parent)
+        large_font = ('Helvetica', 14)
+        self.button_width = 32  
+        self.pad_y = 4
 
-        self.button_width = 45  
-        self.pad_y = 5
-
-        self.file1_button = tk.Button(self.frame, text="Upload SignalA", command=self.upload_file1, width=self.button_width)
+        self.file1_button = tk.Button(self.frame, text="Upload SignalA", command=self.upload_file1, width=self.button_width, font=large_font)
         self.file1_button.grid(row=1, column=0, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
-        self.file2_button = tk.Button(self.frame, text="Upload SignalB", command=self.upload_file2, width=self.button_width)
+        self.file2_button = tk.Button(self.frame, text="Upload SignalB", command=self.upload_file2, width=self.button_width, font=large_font)
         self.file2_button.grid(row=1, column=1, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
-        self.add_button = tk.Button(self.frame, text="Add Signals and Display", command=self.add_signals, width=self.button_width)
+        self.add_button = tk.Button(self.frame, text="Add Signals and Display", command=self.add_signals, width=self.button_width, font=large_font)
         self.add_button.grid(row=2, column=0, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
-        self.sub_button = tk.Button(self.frame, text="Subtract Signals and Display", command=self.sub_signals, width=self.button_width)
+        self.sub_button = tk.Button(self.frame, text="Subtract Signals and Display", command=self.sub_signals, width=self.button_width, font=large_font)
         self.sub_button.grid(row=2, column=1, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
-        self.mul_button = tk.Button(self.frame, text="Multiply SignalA by Constant", command=self.multiply_signals, width=self.button_width)
+        self.mul_button = tk.Button(self.frame, text="Multiply SignalA by Constant", command=self.multiply_signals, width=self.button_width, font=large_font)
         self.mul_button.grid(row=3, column=0, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
-        self.shift_button = tk.Button(self.frame, text="Shift SignalA and Display", command=self.shift_signal, width=self.button_width)
+        self.shift_button = tk.Button(self.frame, text="Shift SignalA and Display", command=self.shift_signal, width=self.button_width, font=large_font)
         self.shift_button.grid(row=3, column=1, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
-        self.fold_button = tk.Button(self.frame, text="Fold SignalA and Display", command=self.fold_signals, width=self.button_width)
+        self.fold_button = tk.Button(self.frame, text="Fold SignalA and Display", command=self.fold_signals, width=self.button_width, font=large_font)
         self.fold_button.grid(row=4, column=0, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
         # Constant input
         self.label_entry_frame = tk.Frame(self.frame)
-        self.label = tk.Label(self.label_entry_frame, text="Constant:")
+        self.label = tk.Label(self.label_entry_frame, text="Constant:", font=large_font)
         self.label.pack(side='left', padx=0)
         
         self.ConstantInput = tk.Entry(self.label_entry_frame, width=40)
         self.ConstantInput.pack(side='left', padx=0)
 
         self.label_entry_frame.grid(row=4, column=1, padx=(5, 10), pady=self.pad_y, sticky='ew')
+
+        # Figure and canvas for plotting
+        self.fig, self.ax = plt.subplots()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
+        self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
+
 
 
     def display(self):
@@ -130,24 +136,18 @@ class Task1:
 
 
     def plot_signals(self, samples):
+        self.ax.clear()
+        
         indices = list(samples.keys())
         values = list(samples.values())
         
-        # Create a figure
-        fig, ax = plt.subplots(figsize=(8, 4))
-        ax.stem(indices, values)
-        ax.set_title("Signal Visualization")
-        ax.set_xlabel("Index")
-        ax.set_ylabel("Value")
-        ax.grid()
 
-        # Clear previous plot if it exists
-        if hasattr(self, 'canvas'):
-            self.canvas.get_tk_widget().destroy()  # Remove the previous canvas
-
+        self.ax.stem(indices, values)
+        self.ax.set_title("Signal Visualization")
+        self.ax.set_xlabel("Index")
+        self.ax.set_ylabel("Value")
+        self.ax.grid()
         # Create a canvas to display the plot
-        self.canvas = FigureCanvasTkAgg(fig, master=self.frame)  # Use your main frame or window as the master
         self.canvas.draw()
-        self.canvas.get_tk_widget().grid(row=6, column=0, columnspan=2, pady=10)  # Adjust row/column as needed
  
 

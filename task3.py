@@ -16,31 +16,32 @@ class Task3:
         self.frame = tk.Frame(self.parent)
         self.frame.grid(padx=10, pady=10)  
 
+        large_font = ('Helvetica', 14)
+
         # Figure and canvas for plotting
         self.fig, self.ax = plt.subplots()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
 
-        # Input fields for amplitude, frequency, phase, sampling
         self.num_of_bits = tk.IntVar(value=0)  # Initialize to 0 instead of None
         self.num_of_levels = tk.IntVar(value=0)  # Initialize to 0
 
-        ttk.Label(self.frame, text="Number of bits:").grid(row=2, column=0, pady=5)
+        ttk.Label(self.frame, text="Number of bits:", font=large_font).grid(row=2, column=0, pady=5)
         self.bits_entry = ttk.Entry(self.frame, textvariable=self.num_of_bits)
         self.bits_entry.grid(row=2, column=1, pady=5)
 
-        ttk.Label(self.frame, text="Number of levels:").grid(row=3, column=0, pady=5)
+        ttk.Label(self.frame, text="Number of levels:", font=large_font).grid(row=3, column=0, pady=5)
         self.levels_entry = ttk.Entry(self.frame, textvariable=self.num_of_levels)
         self.levels_entry.grid(row=3, column=1, pady=5)
 
         # Radio buttons to select sine or cosine
         self.test = tk.StringVar(value="Test1")
-        tk.Radiobutton(self.frame, text="Test 1", variable=self.test, value="Test1").grid(row=4, column=0, pady=5)
-        tk.Radiobutton(self.frame, text="Test 2", variable=self.test, value="Test2").grid(row=4, column=1, pady=5)
+        tk.Radiobutton(self.frame, text="Test 1", variable=self.test, value="Test1", font=large_font).grid(row=4, column=0, pady=5)
+        tk.Radiobutton(self.frame, text="Test 2", variable=self.test, value="Test2", font=large_font).grid(row=4, column=1, pady=5)
 
         # Generate the signal
         generate_button = ttk.Button(self.frame, text="Generate Signal", command=self.choose_test)
-        generate_button.grid(row=6, column=0, columnspan=2, pady=10)
+        generate_button.grid(row=6, column=0, columnspan=2, rowspan= 1, pady=10)
 
         self.signal = None
         self.midpoints = []
@@ -97,7 +98,7 @@ class Task3:
         return intervals_indecies, encoded_values, quantized_values, errors
     
 
-    def get_intervals(self, levels):
+    def get_intervals(self, levels): #ranges
 
         intervals = []
 
@@ -113,8 +114,6 @@ class Task3:
             end = round(start + delta, 3)
 
         return intervals
-
-
 
 
     def quantize_values(self, intervals):
@@ -150,7 +149,7 @@ class Task3:
         return binary_numbers   
     
 
-    def encode_values(self, binary_numbers, quantized_values):
+    def encode_values(self, binary_numbers, quantized_values): #to binary
 
         encoded = {}
 
