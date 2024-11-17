@@ -34,7 +34,7 @@ class Task2:
 
         # Input fields for amplitude, frequency, phase, sampling
         self.amplitude = tk.DoubleVar(value=1.0)
-        self.phase = tk.DoubleVar(value=0.0)
+        self.theta = tk.DoubleVar(value=0.0)
         self.frequency = tk.DoubleVar(value=1.0)
         self.sampling_rate = tk.DoubleVar(value=50.0)
 
@@ -42,7 +42,7 @@ class Task2:
         ttk.Entry(self.frame, textvariable=self.amplitude).grid(row=2, column=1, pady=5)
 
         ttk.Label(self.frame, text="Phase Shift (theta):", font=large_font).grid(row=3, column=0, pady=5)
-        ttk.Entry(self.frame, textvariable=self.phase).grid(row=3, column=1, pady=5)
+        ttk.Entry(self.frame, textvariable=self.theta).grid(row=3, column=1, pady=5)
 
         ttk.Label(self.frame, text="Analog Frequency:", font=large_font).grid(row=4, column=0, pady=5)
         ttk.Entry(self.frame, textvariable=self.frequency).grid(row=4, column=1, pady=5)
@@ -62,33 +62,43 @@ class Task2:
 
 
     def generate_signal(self):
-        self.clear_plot()  # Clear any existing plot
 
-        signal_type = self.signal_type.get()
-        function_type = self.function_type.get()
-        A = self.amplitude.get()
-        theta = self.phase.get()
-        f = self.frequency.get()
-        fs = self.sampling_rate.get()
+        self.signal_type = self.signal_type.get()
+        self.function_type = self.function_type.get()
+        self.theta = self.theta.get()
 
-        if fs < 2 * f:
+        self.amplitude = self.amplitude.get()
+        self.frequency = self.frequency.get()
+        self.sampling_rate = self.sampling_rate.get()
+
+        if self.sampling_rate < 2 * self.frequency:
             messagebox.showerror("Error", "Sampling frequency must be at least twice the analog frequency.")
             return
+        
+        self.plot_signal()
 
-        t = np.linspace(0, 1, int(fs))
-        if function_type == "Sine":
-            signal = A * np.sin(2 * np.pi * f * t + theta)
+
+    def plot_signal(self):
+
+        self.clear_plot()  
+
+        t = np.linspace(0, 1, int(self.sampling_rate))
+
+        if self.function_type == "Sine":
+            signal = self.amplitude * np.sin(2 * np.pi * self.frequency * t + self.theta)
         else:
-            signal = A * np.cos(2 * np.pi * f * t + theta)
+            signal = self.amplitude * np.cos(2 * np.pi * self.frequency * t + self.theta)
 
-        if signal_type == "Discrete":
+        if self.signal_type == "Discrete":
             self.ax.stem(t[::], signal)
         else:
             self.ax.plot(t, signal)
+
         # Plot the generated signal
-        self.ax.set_title(f"{function_type} Wave (A={A}, f={f}, θ={theta})")
+        self.ax.set_title(f"{self.function_type} Wave (A={self.amplitude}, f={self.frequency}, θ={self.theta})")
 
         self.canvas.draw()
+
 
     def display(self):
         self.frame.grid(row=1, column=0, columnspan=2, sticky='nsew')

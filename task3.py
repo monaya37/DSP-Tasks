@@ -78,7 +78,6 @@ class Task3:
             intervals_indecies,encoded_values,quantized_values,errors = self.process_quantization("task3_files\\Quan2_input.txt", levels, bits)
             QuanTest2.QuantizationTest2('task3_files\\Quan2_Out.txt',intervals_indecies,encoded_values,quantized_values,errors)
 
-
         self.num_of_levels.set(0) #reset
         self.num_of_bits.set(0) #reset
         self.midpoints.clear()
@@ -108,7 +107,7 @@ class Task3:
         delta = round(delta / float(levels), 3) 
 
         end = round(start + delta, 3)
-        for i in range(int(levels)):  
+        for _ in range(int(levels)):  
             intervals.append((start, end))
             start = end
             end = round(start + delta, 3)

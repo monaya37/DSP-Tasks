@@ -10,11 +10,13 @@ import os
 class Task1:
     def __init__(self, parent):
         self.parent = parent
+
         self.signalA = None
         self.signalB = None
 
         # Create GUI Components but do not grid them yet
         self.frame = tk.Frame(self.parent)
+
         large_font = ('Helvetica', 14)
         self.button_width = 32  
         self.pad_y = 4
@@ -56,7 +58,6 @@ class Task1:
         self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
 
 
-
     def display(self):
         self.frame.grid(row=1, column=0, columnspan=2, sticky='nsew')
 
@@ -79,12 +80,11 @@ class Task1:
             messagebox.showwarning("Missing Files", "Please upload both Signal files!")
             return
 
-        signal = functions.add_signals(self.signalA, self.signalB)
+        signal = functions.add_signals(self.signalA, self.signalB) #indecies, values, samples
         self.plot_signals(signal[2]) 
         AddSignalSamplesAreEqual("task1_files\\Signal1.txt", "task1_files\\Signal2.txt", signal[0], signal[1])
 
       
-        
     
     def sub_signals(self):
         if self.signalA is None or self.signalB is None:
@@ -130,7 +130,8 @@ class Task1:
             return
 
         signal = functions.fold_signals(self.signalA)   
-        self.plot_signals(signal[2])  
+        self.plot_signals(signal[2]) 
+
         Folding(signal[0], signal[1])
 
 
@@ -141,13 +142,11 @@ class Task1:
         indices = list(samples.keys())
         values = list(samples.values())
         
-
         self.ax.stem(indices, values)
         self.ax.set_title("Signal Visualization")
         self.ax.set_xlabel("Index")
         self.ax.set_ylabel("Value")
         self.ax.grid()
-        # Create a canvas to display the plot
         self.canvas.draw()
  
 
