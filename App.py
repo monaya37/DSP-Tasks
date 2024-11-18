@@ -10,7 +10,7 @@ class App:
 
         self.root = root
         self.root.title("Digital Signal Processing GUI")
-        self.root.geometry("800x800")
+        self.root.geometry("1200x1200")
         self.root.configure(padx=20, pady=20)
 
         large_font = ('Helvetica', 14)
