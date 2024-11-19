@@ -38,7 +38,7 @@ class App:
         self.task3_frame = Task3(self.root)  
         self.task4_frame = Task4(self.root)  
 
-        self.show_task1()  # Show Task 1 by default
+        self.show_task4()  # Show Task 1 by default
 
     def show_task1(self):
         self.task2_frame.hide()  # Hide Task 2

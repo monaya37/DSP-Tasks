@@ -13,37 +13,34 @@ class Task4:
 
         self.parent = parent
         self.large_font = ('Helvetica', 14)
-        # Create GUI Components
         
-        # Create GUI Components
+        # Create main frame
         self.frame = tk.Frame(self.parent)
         self.frame.grid(padx=10, pady=10)
 
-        # Configure columns for even space
-        self.frame.grid_columnconfigure(0, weight=1)
-        self.frame.grid_columnconfigure(1, weight=1)
-        self.frame.grid_columnconfigure(2, weight=1)
-
-        # Radio buttons to conv type
+        # Radio buttons for function type
         self.function_type = tk.StringVar(value="convolution")
         tk.Radiobutton(self.frame, text="Convolution", variable=self.function_type, value="convolution", font=self.large_font).grid(row=1, column=0, pady=5, sticky='ew')
         tk.Radiobutton(self.frame, text="Derivative", variable=self.function_type, value="derivative", font=self.large_font).grid(row=1, column=1, pady=5, sticky='ew')
         tk.Radiobutton(self.frame, text="Average", variable=self.function_type, value="average", font=self.large_font).grid(row=1, column=2, pady=5, sticky='ew')
 
-        # Label and entry for constant value
-        self.constant = tk.IntVar(value=0)  # Initialize to 0
-        ttk.Label(self.frame, text="Enter: ", font=self.large_font).grid(row=2, column=0, pady=5)
-        self.constant_entry = ttk.Entry(self.frame, textvariable=self.constant)
-        self.constant_entry.grid(row=2, column=1, pady=5)
+        # Constant input
+        self.label_entry_frame = tk.Frame(self.frame)
+        self.label = tk.Label(self.label_entry_frame, text="Constant:", font=self.large_font)
+        self.label.pack(side='left', padx=0)
+        self.ConstantInput = tk.Entry(self.label_entry_frame, width=40)
+        self.ConstantInput.pack(side='left', padx=0)
+        self.label_entry_frame.grid(row=2, column=1, padx=(5, 10), pady=4, sticky='ew')
 
-        # Generate the signal button
-        generate_button = ttk.Button(self.frame, text="start", command=self.run_algorithm)
+        # Start button
+        generate_button = ttk.Button(self.frame, text="Start", command=self.run_algorithm)
         generate_button.grid(row=3, column=0, columnspan=3, pady=10)
 
-        # Figure and canvas for plotting
+        # Plotting area (centered)
         self.fig, self.ax = plt.subplots()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
-        self.canvas.get_tk_widget().grid(row=4, column=0, columnspan=3, pady=10, sticky='ew')
+        self.canvas_widget = self.canvas.get_tk_widget()
+        self.canvas_widget.grid(row=4, column=0, columnspan=3, pady=10, sticky='nsew')
 
         self.signal = None
         self.signal2 = None
@@ -57,16 +54,17 @@ class Task4:
 
     def run_algorithm(self):
         print("run algo function called")
+        self.window_size = self.ConstantInput.get()
         self.function_type = self.function_type.get()
-        self.window_size = self.constant.get()
-
+        print(self.function_type)
         if(self.function_type == "convolution"):
 
-            path = 'testcases\\Convolution testcases\\Signal 1.txt'
-            path2 = 'testcases\\Convolution testcases\\Signal 2.txt'
+            input_path = 'testcases\\Convolution testcases\\Signal 1.txt'
+            input_path2 = 'testcases\\Convolution testcases\\Signal 2.txt'
+            print("in")
 
-            self.signal = functions.read_signals(path)
-            self.signal2 = functions.read_signals(path2)
+            self.signal = functions.read_signals(input_path)
+            self.signal2 = functions.read_signals(input_path2)
 
             self.convolution()
 
@@ -79,10 +77,9 @@ class Task4:
 
         elif(self.function_type == "average"):
 
-            path = 'testcases\\Moving Average testcases\\MovingAvg_input.txt'
-            self.signal = functions.read_signals(path)
-            self.window_size = self.constant.get()
+            input_path  = 'testcases\\Moving Average testcases\\MovingAvg_input.txt'
 
+            self.signal = functions.read_signals(input_path)
             self.average()
 
 
@@ -115,19 +112,15 @@ class Task4:
 
         indices = list(y.keys())
         values = list(y.values())
-        output_path = 'testcases/Convolution testcases/Conv_output.txt'
         self.plot_signals(y)
+
+        output_path = 'testcases/Convolution testcases/Conv_output.txt'
         functions.CompareOutput(indices, values, output_path)
 
-        print("conv output", y)
         #call compare function
         return
     
     def derivative(self):
-        print("deriv called")
-
-        #computer using given equations 
-        #call compare function
         return
     
     def average(self):
@@ -161,4 +154,5 @@ class Task4:
         self.canvas.draw()
  
         return
+    
 
