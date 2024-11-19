@@ -24,18 +24,8 @@ class Task4:
         tk.Radiobutton(self.frame, text="Derivative", variable=self.conv_type, value="derivative", font=large_font).grid(row=1, column=1, pady=5)
         tk.Radiobutton(self.frame, text="Average", variable=self.conv_type, value="average", font=large_font).grid(row=1, column=2, pady=5)
 
-        # Radio buttons to select input signal
-        # self.avarage_signal = tk.StringVar(value="Signal1")
-        # tk.Radiobutton(self.frame, text="Signal 1", variable=self.avarage_signal, value="Signal1", font=large_font).grid(row=4, column=0, pady=5)
-        # tk.Radiobutton(self.frame, text="Signal 2", variable=self.avarage_signal, value="Signal2", font=large_font).grid(row=4, column=1, pady=5)
-
-        # Figure and canvas for plotting
-        self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2, figsize=(10, 5))
+        self.fig, self.ax= plt.subplots()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
-        self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
-
-        self.fig2, self.ax3= plt.subplots()
-        self.canvas = FigureCanvasTkAgg(self.fig2, master=self.frame)
         self.canvas.get_tk_widget().grid(row=8, column=0, columnspan=2, pady=10)
 
         self.constant = tk.IntVar(value=0)  # Initialize to 0
@@ -61,29 +51,23 @@ class Task4:
 
         self.window_size = self.constant.get()
         self.conv_type = self.conv_type.get()
-        if(self.conv_type == "convolution"):
 
+        if(self.conv_type == "convolution"):
             path = 'testcases\Convolution testcases\Signal 1.txt'
             path2 = 'testcases\Convolution testcases\Signal 2.txt'
-
             self.signal = functions.read_signals(path)
             self.signal2 = functions.read_signals(path2)
-
             self.convolution()
 
         elif(self.conv_type == "derivative"):
-
             path = 'testcases\Derivative testcases\Derivative_input.txt'
             self.signal = functions.read_signals(path)
-
             self.derivative()
 
         elif(self.conv_type == "average"):
-
-            path = 'testcases\Moving Average testcases\MovingAvg_input.txt'
+            path = 'testcases\\Moving Average testcases\\MovingAvg_input.txt'
             self.signal = functions.read_signals(path)
             self.window_size = self.constant.get()
-
             self.average()
 
 
@@ -94,11 +78,7 @@ class Task4:
         if(self.signal[0][0] <= self.signal2[0][0]):
             h = self.signal[2]
             x = self.signal2[2]
-            print("x",self.signal2[0])
-            print("h", self.signal[0])
-            #print("last h" , self.signal[0][0])
             start = self.signal[0][0]
-            #print("last x", self.singal2[0][-1]) 
             end = self.signal2[0][-1] + self.signal[0][-1]
         else:
             x = self.signal[2]
@@ -106,7 +86,6 @@ class Task4:
             start = self.signal2[0][0]
             end = self.signal2[0][-1] + self.signal[0][-1]
         
-
         for n in range(start, end+1):
             y[n] = 0
             for k in x.keys():
@@ -118,7 +97,7 @@ class Task4:
         self.plot_signals(y)
 
         output_path = 'testcases/Convolution testcases/Conv_output.txt'
-        #functions.CompareOutput(indices, values, output_path)
+        functions.CompareOutput(indices, values, output_path)
         return
     
     def derivative(self):
@@ -129,10 +108,18 @@ class Task4:
     def average(self):
 
         # Compute moving average
+        if(self.window_size == 3):
+            output_path = 'testcases\\Moving Average testcases\\MovingAvg_out1.txt'
+        elif(self.window_size == 5):
+            output_path = 'testcases\\Moving Average testcases\\MovingAvg_out2.txt'
+
+
         x = self.signal[2]
-        M = self.constant_entry.get()
+        M = int(self.constant_entry.get())
+
         indices = list(x.keys())
         values = list(x.values())
+        samples = {}
         moving_avg = []
         valid_indices = []  # Keep track of indices for valid moving averages
         for i in range(len(values)):
@@ -140,20 +127,16 @@ class Task4:
                 continue  # Skip indices where averaging cannot be done
             avg = round(sum(values[i - M + 1:i + 1]) / M, 3)
             moving_avg.append(avg)
-            valid_indices.append(indices[i])  # Record valid index
-        print("RGer", M)
+            valid_indices.append(indices[i-4])  # Record valid index
+            samples[i-1] = avg
+            print(indices[i])
+            
+        values = [round(val, 3) if not val.is_integer() else int(val) for val in moving_avg]
+        functions.CompareOutput(valid_indices, moving_avg, output_path)
+        print("values: ", values)
+        print("indecies: ", valid_indices)
+        self.plot_signals(samples)
 
-        if(self.window_size == 3):
-            #compute
-            #call compare function
-            return
-        elif(self.window_size == 5):
-            #compute
-            #call compare function
-            return
-        else:
-            #warning message box text
-            return
             
     
     def plot_signals(self, samples):
