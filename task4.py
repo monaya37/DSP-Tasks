@@ -127,7 +127,7 @@ class Task4:
                 continue  # Skip indices where averaging cannot be done
             avg = round(sum(values[i - M + 1:i + 1]) / M, 3)
             moving_avg.append(avg)
-            valid_indices.append(indices[i-4])  # Record valid index
+            valid_indices.append(indices[i] - self.window_size + 1)  # Record valid index
             samples[i-1] = avg
             print(indices[i])
             
