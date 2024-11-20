@@ -21,8 +21,9 @@ class Task4:
         # Radio buttons for function type
         self.radio = tk.StringVar(value="convolution")
         tk.Radiobutton(self.frame, text="Convolution", variable=self.radio, value="convolution", font=self.large_font).grid(row=1, column=0, pady=5, sticky='ew')
-        tk.Radiobutton(self.frame, text="Derivative", variable=self.radio, value="derivative", font=self.large_font).grid(row=1, column=1, pady=5, sticky='ew')
-        tk.Radiobutton(self.frame, text="Average", variable=self.radio, value="average", font=self.large_font).grid(row=1, column=2, pady=5, sticky='ew')
+        tk.Radiobutton(self.frame, text="1st Derivative", variable=self.radio, value="firstderivative", font=self.large_font).grid(row=1, column=1, pady=5, sticky='ew')
+        tk.Radiobutton(self.frame, text="2nd Derivative", variable=self.radio, value="secondderivative", font=self.large_font).grid(row=1, column=2, pady=5, sticky='ew')
+        tk.Radiobutton(self.frame, text="Average", variable=self.radio, value="average", font=self.large_font).grid(row=1, column=3, pady=5, sticky='ew')
 
         # Constant input
         self.label_entry_frame = tk.Frame(self.frame)
@@ -68,12 +69,19 @@ class Task4:
 
             self.convolution()
 
-        elif(self.function_type == "derivative"):
+        elif(self.function_type == "firstderivative"):
 
             path = 'testcases\\Derivative testcases\\Derivative_input.txt'
             self.signal = functions.read_signals(path)
 
-            self.derivative()
+            self.first_derivative()
+
+        elif(self.function_type == "secondderivative"):
+
+            path = 'testcases\\Derivative testcases\\Derivative_input.txt'
+            self.signal = functions.read_signals(path)
+
+            self.second_derivative()
 
         elif(self.function_type == "average"):
 
@@ -84,18 +92,11 @@ class Task4:
 
 
     def convolution(self):
-        #compute
-        print("conv called")
-
         y = {}
         if(self.signal[0][0] <= self.signal2[0][0]):
             h = self.signal[2]
             x = self.signal2[2]
-            print("x",self.signal2[0])
-            print("h", self.signal[0])
-            #print("last h" , self.signal[0][0])
             start = self.signal[0][0]
-            #print("last x", self.singal2[0][-1]) 
             end = self.signal2[0][-1] + self.signal[0][-1]
         else:
             x = self.signal[2]
@@ -120,11 +121,10 @@ class Task4:
         #call compare function
         return
     
-    def derivative(self):
+    def first_derivative(self):
 
         x = self.signal[2]
         y = {}
-
         for i in x.keys():
             if((i+1) in x.keys()):
                 y[i] = x[i+1] - x[i]
@@ -139,8 +139,19 @@ class Task4:
         print(y)
         return
     
-    def first_derivative(self, x):
+    def second_derivative(self):
+        x = self.signal[2]
+        y = {}
+        for i in x.keys():
+            if((i+1) in x.keys() and (i-1) in x.keys()):
+                y[i-1] = x[i+1] - 2*x[i] + x[i-1]
 
+        print("ugilgb", len(y))
+        indices = list(y.keys())
+        values = list(y.values())
+        output_path = 'testcases\\Derivative testcases\\2nd_derivative_out.txt'
+        functions.CompareOutput(indices, values, output_path)
+        self.plot_signals(y)
         return
     
     def average(self):
