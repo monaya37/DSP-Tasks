@@ -50,8 +50,13 @@ class Task2:
         ttk.Label(self.frame, text="Sampling Frequency:", font=large_font).grid(row=5, column=0, pady=5)
         ttk.Entry(self.frame, textvariable=self.sampling_rate).grid(row=5, column=1, pady=5)
 
+
+        # Define the button style
+        style = ttk.Style()
+        style.configure('Large.TButton', font=large_font)
+        
         # Generate the signal
-        generate_button = ttk.Button(self.frame, text="Generate Signal", width=self.button_width, command=self.generate_signal)
+        generate_button = ttk.Button(self.frame, text="Generate Signal", width=self.button_width, command=self.generate_signal, style='Large.TButton')
         generate_button.grid(row=6, column=0, columnspan=2, pady=10)
 
     def clear_plot(self):

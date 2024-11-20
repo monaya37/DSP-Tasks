@@ -39,8 +39,12 @@ class Task3:
         tk.Radiobutton(self.frame, text="Test 1", variable=self.test, value="Test1", font=large_font).grid(row=4, column=0, pady=5)
         tk.Radiobutton(self.frame, text="Test 2", variable=self.test, value="Test2", font=large_font).grid(row=4, column=1, pady=5)
 
+        # Define the button style
+        style = ttk.Style()
+        style.configure('Large.TButton', font=large_font)
+
         # Generate the signal
-        generate_button = ttk.Button(self.frame, text="Generate Signal", command=self.choose_test)
+        generate_button = ttk.Button(self.frame, text="Generate Signal", command=self.choose_test, style='Large.TButton')
         generate_button.grid(row=6, column=0, columnspan=2, rowspan= 1, pady=10)
 
         self.signal = None

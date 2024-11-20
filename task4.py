@@ -19,23 +19,32 @@ class Task4:
         self.frame.grid(padx=10, pady=10)
 
         # Radio buttons for function type
+        self.radios_frame = tk.Frame(self.frame)
+
         self.radio = tk.StringVar(value="convolution")
-        tk.Radiobutton(self.frame, text="Convolution", variable=self.radio, value="convolution", font=self.large_font).grid(row=1, column=0, pady=5, sticky='ew')
-        tk.Radiobutton(self.frame, text="1st Derivative", variable=self.radio, value="firstderivative", font=self.large_font).grid(row=1, column=1, pady=5, sticky='ew')
-        tk.Radiobutton(self.frame, text="2nd Derivative", variable=self.radio, value="secondderivative", font=self.large_font).grid(row=1, column=2, pady=5, sticky='ew')
-        tk.Radiobutton(self.frame, text="Average", variable=self.radio, value="average", font=self.large_font).grid(row=1, column=3, pady=5, sticky='ew')
+        tk.Radiobutton(self.radios_frame, text="Convolution",  variable=self.radio, value="convolution",       font=self.large_font).grid(row=1, column=0, padx = 1, pady=3, sticky='ew')
+        tk.Radiobutton(self.radios_frame, text="Average",      variable=self.radio, value="average",           font=self.large_font).grid(row=1, column=1, padx = 1, pady=3, sticky='ew')
+        tk.Radiobutton(self.radios_frame, text="1st Derivative", variable=self.radio, value="firstderivative", font=self.large_font).grid(row=1, column=2, padx = 1, pady=3, sticky='ew')
+        tk.Radiobutton(self.radios_frame, text="2nd Derivative", variable=self.radio, value="secondderivative", font=self.large_font).grid(row=1, column=3, padx = 1, pady=3, sticky='ew')
+        self.radios_frame.grid(row=1, pady=4, sticky='ew')
 
         # Constant input
         self.label_entry_frame = tk.Frame(self.frame)
-        self.label = tk.Label(self.label_entry_frame, text="Constant:", font=self.large_font)
-        self.label.pack(side='left', padx=0)
-        self.ConstantInput = tk.Entry(self.label_entry_frame, width=40)
-        self.ConstantInput.pack(side='left', padx=0)
-        self.label_entry_frame.grid(row=2, column=1, padx=(5, 10), pady=4, sticky='ew')
+        self.label = tk.Label(self.label_entry_frame, text="Window Size:", font=self.large_font)
+        self.label.pack(side='left', padx=5)
+        self.ConstantInput = tk.Entry(self.label_entry_frame, width=10, font=self.large_font)
+        self.ConstantInput.pack(side='left', padx=2)
+        self.label_entry_frame.grid(row=2, column=0, pady=4, sticky='ew')
 
-        # Start button
-        generate_button = ttk.Button(self.frame, text="Start", command=self.run_algorithm)
+        # Define the button style
+        style = ttk.Style()
+        style.configure('Large.TButton', font=self.large_font)
+
+        # Start button with large font
+        generate_button = ttk.Button(self.frame, text="Start", command=self.run_algorithm, style='Large.TButton')
         generate_button.grid(row=3, column=0, columnspan=3, pady=10)
+
+
 
         # Plotting area (centered)
         self.fig, self.ax = plt.subplots()
@@ -45,6 +54,7 @@ class Task4:
 
         self.signal = None
         self.signal2 = None
+        self.title = None #for visualization
 
 
     def display(self):
@@ -54,44 +64,46 @@ class Task4:
         self.frame.grid_forget()
 
     def run_algorithm(self):
-        print("run algo function called")
 
-        self.window_size = self.ConstantInput.get()
         self.function_type = self.radio.get()
         if(self.function_type == "convolution"):
-
             input_path = 'testcases\\Convolution testcases\\Signal 1.txt'
             input_path2 = 'testcases\\Convolution testcases\\Signal 2.txt'
-            print("in")
-
+            output_path = 'testcases/Convolution testcases/Conv_output.txt'
             self.signal = functions.read_signals(input_path)
             self.signal2 = functions.read_signals(input_path2)
-
-            self.convolution()
+            self.title = 'Convolution'
+            self.convolution(output_path)
 
         elif(self.function_type == "firstderivative"):
-
+            self.title = '1st Derivative'
             path = 'testcases\\Derivative testcases\\Derivative_input.txt'
+            output_path = 'testcases\\Derivative testcases\\1st_derivative_out.txt'
             self.signal = functions.read_signals(path)
-
-            self.first_derivative()
+            self.first_derivative(output_path)
 
         elif(self.function_type == "secondderivative"):
-
+            self.title = '2nd Derivative'           
             path = 'testcases\\Derivative testcases\\Derivative_input.txt'
+            output_path = 'testcases\\Derivative testcases\\2nd_derivative_out.txt'
             self.signal = functions.read_signals(path)
-
-            self.second_derivative()
+            self.second_derivative(output_path)
 
         elif(self.function_type == "average"):
-
+            self.title = 'Average'
             input_path  = 'testcases\\Moving Average testcases\\MovingAvg_input.txt'
-
             self.signal = functions.read_signals(input_path)
-            self.average()
+
+            self.window_size = int(self.ConstantInput.get())
+            if(self.window_size == 3):
+                output_path = 'testcases\\Moving Average testcases\\MovingAvg_out1.txt'
+            elif(self.window_size == 5):
+                output_path = 'testcases\\Moving Average testcases\\MovingAvg_out2.txt'
+            
+            self.average(output_path)
 
 
-    def convolution(self):
+    def convolution(self, output_path):
         y = {}
         if(self.signal[0][0] <= self.signal2[0][0]):
             h = self.signal[2]
@@ -113,61 +125,45 @@ class Task4:
 
         indices = list(y.keys())
         values = list(y.values())
+
+        functions.CompareOutput(indices, values, output_path)
         self.plot_signals(y)
 
-        output_path = 'testcases/Convolution testcases/Conv_output.txt'
-        functions.CompareOutput(indices, values, output_path)
-
-        #call compare function
         return
     
-    def first_derivative(self):
+    def first_derivative(self, output_path):
 
-        x = self.signal[2]
         y = {}
+        x = self.signal[2]
+
         for i in x.keys():
             if((i+1) in x.keys()):
                 y[i] = x[i+1] - x[i]
-
-        
+ 
         indices = list(y.keys())
         values = list(y.values())
-        output_path = 'testcases\\Derivative testcases\\1st_derivative_out.txt'
         functions.CompareOutput(indices, values, output_path)
         self.plot_signals(y)
 
-        print(y)
         return
     
-    def second_derivative(self):
-        x = self.signal[2]
+    def second_derivative(self, output_path):
         y = {}
+        x = self.signal[2]
+
         for i in x.keys():
             if((i+1) in x.keys() and (i-1) in x.keys()):
                 y[i-1] = x[i+1] - 2*x[i] + x[i-1]
 
-        print("ugilgb", len(y))
         indices = list(y.keys())
         values = list(y.values())
-        output_path = 'testcases\\Derivative testcases\\2nd_derivative_out.txt'
         functions.CompareOutput(indices, values, output_path)
         self.plot_signals(y)
         return
     
-    def average(self):
-        print("avg called")
-        # Compute moving 
+    def average(self, output_path):
+
         x = self.signal[2]
-        self.window_size = int(self.ConstantInput.get())
-
-        if(self.window_size == 3):
-            output_path = 'testcases\\Moving Average testcases\\MovingAvg_out1.txt'
-        elif(self.window_size == 5):
-            output_path = 'testcases\\Moving Average testcases\\MovingAvg_out2.txt'
-
-
-
-
         indices = list(x.keys())
         values = list(x.values())
         samples = {}
@@ -179,25 +175,23 @@ class Task4:
             avg = round(sum(values[i - self.window_size + 1:i + 1]) / self.window_size, 3)
             moving_avg.append(avg)
             valid_indices.append(indices[i] - self.window_size+ 1)  # Record valid index
-            samples[i-1] = avg
-            print(indices[i])
+            samples[indices[i] - self.window_size+ 1] = avg
             
         values = [round(val, 3) if not val.is_integer() else int(val) for val in moving_avg]
         functions.CompareOutput(valid_indices, moving_avg, output_path)
-        print("values: ", values)
-        print("indecies: ", valid_indices)
         self.plot_signals(samples)
 
     
 
     def plot_signals(self, samples):
         self.ax.clear()
-        
+
         indices = list(samples.keys())
         values = list(samples.values())
         
         self.ax.stem(indices, values)
-        self.ax.set_title("Signal Visualization")
+        self.ax.set_title(f"{self.title} Visualization")
+
         self.ax.set_xlabel("Index")
         self.ax.set_ylabel("Value")
         self.ax.grid()
