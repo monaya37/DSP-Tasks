@@ -121,7 +121,26 @@ class Task4:
         return
     
     def derivative(self):
+
+        x = self.signal[2]
+        y = {}
+
+        for i in x.keys():
+            if((i+1) in x.keys()):
+                y[i] = x[i+1] - x[i]
+
         
+        indices = list(y.keys())
+        values = list(y.values())
+        output_path = 'testcases\\Derivative testcases\\1st_derivative_out.txt'
+        functions.CompareOutput(indices, values, output_path)
+        self.plot_signals(y)
+
+        print(y)
+        return
+    
+    def first_derivative(self, x):
+
         return
     
     def average(self):
