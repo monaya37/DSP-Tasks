@@ -19,10 +19,10 @@ class Task4:
         self.frame.grid(padx=10, pady=10)
 
         # Radio buttons for function type
-        self.function_type = tk.StringVar(value="convolution")
-        tk.Radiobutton(self.frame, text="Convolution", variable=self.function_type, value="convolution", font=self.large_font).grid(row=1, column=0, pady=5, sticky='ew')
-        tk.Radiobutton(self.frame, text="Derivative", variable=self.function_type, value="derivative", font=self.large_font).grid(row=1, column=1, pady=5, sticky='ew')
-        tk.Radiobutton(self.frame, text="Average", variable=self.function_type, value="average", font=self.large_font).grid(row=1, column=2, pady=5, sticky='ew')
+        self.radio = tk.StringVar(value="convolution")
+        tk.Radiobutton(self.frame, text="Convolution", variable=self.radio, value="convolution", font=self.large_font).grid(row=1, column=0, pady=5, sticky='ew')
+        tk.Radiobutton(self.frame, text="Derivative", variable=self.radio, value="derivative", font=self.large_font).grid(row=1, column=1, pady=5, sticky='ew')
+        tk.Radiobutton(self.frame, text="Average", variable=self.radio, value="average", font=self.large_font).grid(row=1, column=2, pady=5, sticky='ew')
 
         # Constant input
         self.label_entry_frame = tk.Frame(self.frame)
@@ -54,9 +54,9 @@ class Task4:
 
     def run_algorithm(self):
         print("run algo function called")
+
         self.window_size = self.ConstantInput.get()
-        self.function_type = self.function_type.get()
-        print(self.function_type)
+        self.function_type = self.radio.get()
         if(self.function_type == "convolution"):
 
             input_path = 'testcases\\Convolution testcases\\Signal 1.txt'
@@ -121,23 +121,43 @@ class Task4:
         return
     
     def derivative(self):
+        
         return
     
     def average(self):
         print("avg called")
+        # Compute moving 
+        x = self.signal[2]
+        self.window_size = int(self.ConstantInput.get())
 
         if(self.window_size == 3):
-            #compute
-            #call compare function
-            return
+            output_path = 'testcases\\Moving Average testcases\\MovingAvg_out1.txt'
         elif(self.window_size == 5):
-            #compute
-            #call compare function
-            return
-        else:
-            #warning message box text
-            return
+            output_path = 'testcases\\Moving Average testcases\\MovingAvg_out2.txt'
+
+
+
+
+        indices = list(x.keys())
+        values = list(x.values())
+        samples = {}
+        moving_avg = []
+        valid_indices = []  # Keep track of indices for valid moving averages
+        for i in range(len(values)):
+            if i < self.window_size - 1:
+                continue  # Skip indices where averaging cannot be done
+            avg = round(sum(values[i - self.window_size + 1:i + 1]) / self.window_size, 3)
+            moving_avg.append(avg)
+            valid_indices.append(indices[i] - self.window_size+ 1)  # Record valid index
+            samples[i-1] = avg
+            print(indices[i])
             
+        values = [round(val, 3) if not val.is_integer() else int(val) for val in moving_avg]
+        functions.CompareOutput(valid_indices, moving_avg, output_path)
+        print("values: ", values)
+        print("indecies: ", valid_indices)
+        self.plot_signals(samples)
+
     
 
     def plot_signals(self, samples):
