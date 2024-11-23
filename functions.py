@@ -3,10 +3,6 @@ from DSP_Task2_TEST_functions import *
 
 
 class functions:
-
-  
-
-
     # Functions
     def plot_signal(samples):
         indices = list(samples.keys())
@@ -111,6 +107,16 @@ class functions:
         for i in range(len(Your_indices)):
             if (Your_indices[i] != expected_indices[i]):
                 print("Comparing Test case failed, your signal have different indicies from the expected one")
+
+
+    def CompareOutput(Your_indices, Your_samples, output_file):
+        expected_indices, expected_samples = ReadSignalFile(output_file)
+        if (len(expected_samples) != len(Your_samples)) and (len(expected_indices) != len(Your_indices)):
+            print("Compare Test case failed, your signal have different length from the expected one")
+            return
+        for i in range(len(Your_indices)):
+            if (Your_indices[i] != expected_indices[i]):
+                print("Compare Test case failed, your signal have different indicies from the expected one")
                 return
         for i in range(len(expected_samples)):
             if abs(Your_samples[i] - expected_samples[i]) < 0.01:
