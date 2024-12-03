@@ -4,6 +4,7 @@ from task1 import Task1
 from task2 import Task2
 from task3 import Task3
 from task4 import Task4
+from task5 import Task5
 
 class App:
     def __init__(self, root):
@@ -32,18 +33,23 @@ class App:
         self.tab4_button = tk.Button(self.button_frame, text="Task 4", command=self.show_task4, font=large_font)
         self.tab4_button.grid(row=0, column=3, padx=(0, 0), pady=5)
 
+        self.tab5_button = tk.Button(self.button_frame, text="Task 5", command=self.show_task5, font=large_font)
+        self.tab5_button.grid(row=0, column=4, padx=(0, 0), pady=5)
+
         # Create frames for each tab
         self.task1_frame = Task1(self.root)  # Task1 is now a class
         self.task2_frame = Task2(self.root)  #
         self.task3_frame = Task3(self.root)  
         self.task4_frame = Task4(self.root)  
+        self.task5_frame = Task5(self.root)  
 
-        self.show_task4()  # Show Task 1 by default
+        self.show_task5()  # Show Task 1 by default
 
     def show_task1(self):
         self.task2_frame.hide()  # Hide Task 2
         self.task3_frame.hide()  # Hide Task 3
         self.task4_frame.hide()  # Hide Task 3
+        self.task5_frame.hide() 
         self.task1_frame.display()  # Call display method of Task1
 
 
@@ -51,6 +57,7 @@ class App:
         self.task1_frame.hide()  
         self.task3_frame.hide()  
         self.task4_frame.hide()  
+        self.task5_frame.hide() 
         self.task2_frame.display() 
 
 
@@ -58,6 +65,7 @@ class App:
         self.task1_frame.hide()  
         self.task2_frame.hide()  
         self.task4_frame.hide()  
+        self.task5_frame.hide() 
         self.task3_frame.display() 
 
 
@@ -65,7 +73,15 @@ class App:
         self.task1_frame.hide()  
         self.task2_frame.hide()  
         self.task3_frame.hide()  
+        self.task5_frame.hide() 
         self.task4_frame.display() 
+
+    def show_task5(self):
+        self.task1_frame.hide()  
+        self.task2_frame.hide()  
+        self.task3_frame.hide()  
+        self.task4_frame.hide() 
+        self.task5_frame.display() 
 
 # Main Application
 if __name__ == "__main__":
