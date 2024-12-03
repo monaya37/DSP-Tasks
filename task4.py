@@ -196,7 +196,7 @@ class Task4:
         self.ax.set_ylabel("Value")
         self.ax.grid()
         self.canvas.draw()
- 
+
         return
     
 
