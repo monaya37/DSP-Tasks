@@ -4,12 +4,18 @@ import math
 #Use to test the Amplitude of DFT and IDFT
 def SignalComapreAmplitude(SignalInput = [] ,SignalOutput= []):
     if len(SignalInput) != len(SignalOutput):
+        print("len false")
+
         return False
     else:
         for i in range(len(SignalInput)):
             if abs(SignalInput[i]-SignalOutput[i])>0.001:
+                print("diff false")
                 return False
             elif SignalInput[i]!=SignalOutput[i]:
+
+                print("expected: ", SignalOutput[i], " found: ", SignalInput[i])
+
                 return False
         return True
 
