@@ -111,6 +111,7 @@ class Task5:
         amplitudes = np.array(input_signal[0])
         shifts = np.array(input_signal[1])
 
+        self.reference_amplitude = output_signal[1]
         N = (len(shifts))
 
         samples = {}
@@ -126,9 +127,12 @@ class Task5:
             samples[n] = round(np.real((counter)/N))
 
         
-        values = list(samples.values())
-        print(SignalComapreAmplitude(values, output_signal[1]))
+        self.amplitude = list(samples.values())
+        amplitude_match = SignalComapreAmplitude(self.amplitude, self.reference_amplitude)
+                
+        print("Amplitude Comparison:", "Match" if amplitude_match else "Mismatch")
         print("idft done")
+        self.plot_signals(output_signal)
         return
     
     def dft(self, input_signal, output_signal):
@@ -176,6 +180,9 @@ class Task5:
             
     def plot_results(self):
 
+        self.axs[0].clear()
+        self.axs[1].clear()
+
         # Amplitude Spectrum Plot
         self.axs[0].stem(self.freq, self.amplitude, basefmt=" ", label='Computed Amplitude')
         self.axs[0].stem(self.freq[:len(self.reference_amplitude)], self.reference_amplitude, basefmt=" ", linefmt='r--', markerfmt='ro', label='Reference Amplitude')
@@ -200,18 +207,22 @@ class Task5:
 
 
 
-    def plot_signals(self, samples):
-        self.ax.clear()
+    def plot_signals(self, outuput_signal):
+        self.axs[0].clear()
 
-        indices = list(samples.keys())
-        values = list(samples.values())
+        indices = list(outuput_signal[0])
+        values = list(outuput_signal[1])
+
         
-        self.ax.stem(indices, values)
-        self.ax.set_title(f"{self.title} Visualization")
+        self.axs[0].stem(indices, values)
+        self.axs[0].set_title(f"Signal after IDFT Visualization")
 
-        self.ax.set_xlabel("Index")
-        self.ax.set_ylabel("Value")
-        self.ax.grid()
+        self.axs[0].set_xlabel("Index")
+        self.axs[0].set_ylabel("Value")
+        self.axs[0].legend()
+
+        self.axs[0].grid()
+
         self.canvas.draw()
  
         return
