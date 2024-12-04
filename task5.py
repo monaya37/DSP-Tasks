@@ -221,7 +221,7 @@ class Task5:
         self.axs[0].set_ylabel("Value")
         self.axs[0].legend()
 
-        self.axs[0].grid()
+        self.axs[0].grid(True)
 
         self.canvas.draw()
  
