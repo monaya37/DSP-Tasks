@@ -70,8 +70,8 @@ class Task4:
             input_path = 'testcases\\Convolution testcases\\Signal 1.txt'
             input_path2 = 'testcases\\Convolution testcases\\Signal 2.txt'
             output_path = 'testcases/Convolution testcases/Conv_output.txt'
-            self.signal = functions.read_signals(input_path)
-            self.signal2 = functions.read_signals(input_path2)
+            self.signal = ReadSignals(input_path)
+            self.signal2 = ReadSignals(input_path2)
             self.title = 'Convolution'
             self.convolution(output_path)
 
@@ -79,20 +79,20 @@ class Task4:
             self.title = '1st Derivative'
             path = 'testcases\\Derivative testcases\\Derivative_input.txt'
             output_path = 'testcases\\Derivative testcases\\1st_derivative_out.txt'
-            self.signal = functions.read_signals(path)
+            self.signal = ReadSignals(path)
             self.first_derivative(output_path)
 
         elif(self.function_type == "secondderivative"):
             self.title = '2nd Derivative'           
             path = 'testcases\\Derivative testcases\\Derivative_input.txt'
             output_path = 'testcases\\Derivative testcases\\2nd_derivative_out.txt'
-            self.signal = functions.read_signals(path)
+            self.signal = ReadSignals(path)
             self.second_derivative(output_path)
 
         elif(self.function_type == "average"):
             self.title = 'Average'
             input_path  = 'testcases\\Moving Average testcases\\MovingAvg_input.txt'
-            self.signal = functions.read_signals(input_path)
+            self.signal = ReadSignals(input_path)
 
             self.window_size = int(self.ConstantInput.get())
             if(self.window_size == 3):
@@ -126,7 +126,7 @@ class Task4:
         indices = list(y.keys())
         values = list(y.values())
 
-        functions.CompareOutput(indices, values, output_path)
+        CompareOutput(indices, values, output_path)
         self.plot_signals(y)
 
         return
@@ -142,7 +142,7 @@ class Task4:
  
         indices = list(y.keys())
         values = list(y.values())
-        functions.CompareOutput(indices, values, output_path)
+        CompareOutput(indices, values, output_path)
         self.plot_signals(y)
 
         return
@@ -157,7 +157,7 @@ class Task4:
 
         indices = list(y.keys())
         values = list(y.values())
-        functions.CompareOutput(indices, values, output_path)
+        CompareOutput(indices, values, output_path)
         self.plot_signals(y)
         return
     
@@ -178,7 +178,7 @@ class Task4:
             samples[indices[i] - self.window_size+ 1] = avg
             
         values = [round(val, 3) if not val.is_integer() else int(val) for val in moving_avg]
-        functions.CompareOutput(valid_indices, moving_avg, output_path)
+        CompareOutput(valid_indices, moving_avg, output_path)
         self.plot_signals(samples)
 
     

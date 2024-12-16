@@ -88,7 +88,7 @@ class Task3:
 
 
     def process_quantization(self, path, levels, bits):
-        self.signal = functions.read_signals(path)
+        self.signal = ReadSignals(path)
             
         intervals = self.get_intervals(levels)
         quantized_values, errors = self.quantize_values(intervals)

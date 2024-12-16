@@ -77,17 +77,17 @@ class Task5:
 
         if(transformation_type == "DFT"):
             print("DFT")
-            input_signal = self.read_signals('task5_files\DFT\input_Signal_DFT.txt')
-            output_signal =  self.read_signals('task5_files\DFT\output_DFT.txt')           
+            input_signal = self.ReadSignals('task5_files\DFT\input_Signal_DFT.txt')
+            output_signal =  self.ReadSignals('task5_files\DFT\output_DFT.txt')           
             self.dft(input_signal, output_signal)
         else:
             print("IDFT")
 
-            input_signal = self.read_signals('task5_files\IDFT\input_IDFT.txt')
+            input_signal = self.ReadSignals('task5_files\IDFT\input_IDFT.txt')
             output_signal = ReadSignalFile('task5_files\IDFT\Output_Signal_IDFT.txt')
             self.idft(input_signal, output_signal)
 
-    def read_signals(self,file_path):
+    def ReadSignals(self,file_path):
         amplitudes = []
         phases = []
         with open(file_path, "r") as file:
@@ -116,12 +116,12 @@ class Task5:
 
         samples = {}
         counter = 0
-
-        #X = amplitudes * np.exp(1j * shifts)
+        # x = A * e^ theta *j 
+        X = amplitudes * np.exp(1j * shifts)
         for n in range(N):
             counter = 0
             for k in range(N):
-                xk = amplitudes[k] * np.exp(1j * shifts[k])
+                xk = X[k]
                 counter = counter + (xk * np.exp(1j* 2 * np.pi * k * n/N))
 
             samples[n] = round(np.real((counter)/N))

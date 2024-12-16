@@ -57,6 +57,10 @@ class Task1:
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
 
+        self.path1 = r'task1_files\Signal1.txt'
+        self.path2 = r'task1_files\Signal2.txt'
+
+
 
     def display(self):
         self.frame.grid(row=1, column=0, columnspan=2, sticky='nsew')
@@ -65,88 +69,53 @@ class Task1:
         self.frame.grid_forget()
 
     def upload_file1(self):
-        file_path = filedialog.askopenfilename(title="Select Signal 1 File")
-        self.signalA = functions.read_signals(file_path)
-        self.plot_signals(self.signalA[2]) 
+        self.signalA = ReadSignals(self.path1)
+        PlotSignal(self.signalA[2], self.ax, self.canvas) 
 
     def upload_file2(self):
-        file_path = filedialog.askopenfilename(title="Select Signal 2 File")
-        self.signalB = functions.read_signals(file_path)
-        self.plot_signals(self.signalB[2]) 
+        self.signalB = ReadSignals(self.path2)
+        PlotSignal(self.signalB[2], self.ax, self.canvas) 
 
 
     def add_signals(self):
-        if self.signalA is None or self.signalB is None:
-            messagebox.showwarning("Missing Files", "Please upload both Signal files!")
-            return
+        indices, values, samples = add_signals(self.signalA, self.signalB)
+        PlotSignal(samples, self.ax, self.canvas) 
 
-        signal = functions.add_signals(self.signalA, self.signalB) #indecies, values, samples
-        self.plot_signals(signal[2]) 
-        AddSignalSamplesAreEqual("task1_files\\Signal1.txt", "task1_files\\Signal2.txt", signal[0], signal[1])
+        AddSignalSamplesAreEqual(self.path1, self.path2,  indices, values,)
 
-      
     
     def sub_signals(self):
-        if self.signalA is None or self.signalB is None:
-            messagebox.showwarning("Missing Files", "Please upload both Signal files!")
-            return
+        indices, values, samples = sub_signals(self.signalA, self.signalB)
 
-        signal = functions.sub_signals(self.signalA, self.signalB)
-        self.plot_signals(signal[2])  
-
-        SubSignalSamplesAreEqual("task1_files\\Signal1.txt", "task1_files\\Signal2.txt", signal[0], signal[1])
+        PlotSignal(samples, self.ax, self.canvas) 
+        SubSignalSamplesAreEqual(self.path1, self.path2, indices, values)
 
 
     def multiply_signals(self):
-        if self.signalA is None:
-            messagebox.showwarning("Missing File", "Please upload Signal A file!")
-            return
-
         constant = int(self.ConstantInput.get())
+        indices, values, samples = multiply_signals(self.signalA, constant)
 
-        signal = functions.multiply_signals(self.signalA, constant)
-        self.plot_signals(signal[2])  
-        
-        MultiplySignalByConst(constant, signal[0], signal[1])
+        PlotSignal(samples, self.ax, self.canvas) 
+        MultiplySignalByConst(constant, indices, values)
 
 
 
     def shift_signal(self):
-        if self.signalA is None:
-            messagebox.showwarning("Missing File", "Please upload Signal A file!")
-            return
-
         constant = int(self.ConstantInput.get()) 
+        indices, values, samples = shift_signal(self.signalA, constant)
 
-        signal = functions.shift_signal(self.signalA, constant)
-        self.plot_signals(signal[2])  
-
-        ShiftSignalByConst(constant, signal[0], signal[1])
+        PlotSignal(samples, self.ax, self.canvas) 
+        ShiftSignalByConst(constant, indices, values)
 
 
     def fold_signals(self):
-        if self.signalA is None:
-            messagebox.showwarning("Missing File", "Please upload Signal A file!")
-            return
+        indices, values, samples = fold_signals(self.signalA)  
 
-        signal = functions.fold_signals(self.signalA)   
-        self.plot_signals(signal[2]) 
-
-        Folding(signal[0], signal[1])
+        PlotSignal(samples, self.ax, self.canvas) 
+        Folding(indices, values)
 
 
 
-    def plot_signals(self, samples):
-        self.ax.clear()
-        
-        indices = list(samples.keys())
-        values = list(samples.values())
-        
-        self.ax.stem(indices, values)
-        self.ax.set_title("Signal Visualization")
-        self.ax.set_xlabel("Index")
-        self.ax.set_ylabel("Value")
-        self.ax.grid()
-        self.canvas.draw()
- 
+    
+
 
