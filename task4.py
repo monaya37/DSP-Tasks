@@ -12,11 +12,22 @@ class Task4:
     def __init__(self, parent):
 
         self.parent = parent
-        self.large_font = ('Helvetica', 14)
         
-        # Create main frame
+        # Configure the root window to center
+        self.parent.grid_rowconfigure(1, weight=1)
+        self.parent.grid_columnconfigure(1, weight=1)
+
+        # Create GUI Components
         self.frame = tk.Frame(self.parent)
-        self.frame.grid(padx=10, pady=10)
+        self.frame.grid(row=1, column=0, sticky="nsew")
+
+        # Center all rows and columns in the frame
+        for i in range(8):  # Adjust number of rows based on content
+            self.frame.grid_rowconfigure(i, weight=1)
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=1)
+
+        self.large_font = ('Helvetica', 14)
 
         # Radio buttons for function type
         self.radios_frame = tk.Frame(self.frame)
@@ -46,11 +57,10 @@ class Task4:
 
 
 
-        # Plotting area (centered)
+        # Figure and canvas for plotting
         self.fig, self.ax = plt.subplots()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
-        self.canvas_widget = self.canvas.get_tk_widget()
-        self.canvas_widget.grid(row=4, column=0, columnspan=3, pady=10, sticky='nsew')
+        self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
 
         self.signal = None
         self.signal2 = None

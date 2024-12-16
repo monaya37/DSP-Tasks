@@ -1,11 +1,8 @@
 # task1.py
 import tkinter as tk
-from tkinter import filedialog, messagebox, Text
 from functions import *
 import matplotlib.pyplot as plt
-from PIL import Image, ImageTk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import os
 
 class Task1:
     def __init__(self, parent):
@@ -15,16 +12,28 @@ class Task1:
         self.signalB = None
 
         # Create GUI Components but do not grid them yet
+        # Configure the root window to center
+        self.parent.grid_rowconfigure(1, weight=1)
+        self.parent.grid_columnconfigure(1, weight=1)
+
+        # Create GUI Components
         self.frame = tk.Frame(self.parent)
+        self.frame.grid(row=1, column=0, sticky="nsew")
+
+        # Center all rows and columns in the frame
+        for i in range(8):  # Adjust number of rows based on content
+            self.frame.grid_rowconfigure(i, weight=1)
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=1)
 
         large_font = ('Helvetica', 14)
         self.button_width = 32  
         self.pad_y = 4
 
-        self.file1_button = tk.Button(self.frame, text="Upload SignalA", command=self.upload_file1, width=self.button_width, font=large_font)
+        self.file1_button = tk.Button(self.frame, text="Display SignalA", command=self.upload_file1, width=self.button_width, font=large_font)
         self.file1_button.grid(row=1, column=0, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
-        self.file2_button = tk.Button(self.frame, text="Upload SignalB", command=self.upload_file2, width=self.button_width, font=large_font)
+        self.file2_button = tk.Button(self.frame, text="Display SignalB", command=self.upload_file2, width=self.button_width, font=large_font)
         self.file2_button.grid(row=1, column=1, padx=(5, 10), pady=self.pad_y, sticky='ew')
 
         self.add_button = tk.Button(self.frame, text="Add Signals and Display", command=self.add_signals, width=self.button_width, font=large_font)

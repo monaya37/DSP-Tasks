@@ -37,7 +37,7 @@ class App:
         self.tab5_button = tk.Button(self.button_frame, text="Task 5", command=self.show_task5, font=large_font)
         self.tab5_button.grid(row=0, column=4, padx=(0, 0), pady=5)
 
-        self.tab5_button = tk.Button(self.button_frame, text="Task 6", command=self.show_task5, font=large_font)
+        self.tab5_button = tk.Button(self.button_frame, text="Task 6", command=self.show_task6, font=large_font)
         self.tab5_button.grid(row=0, column=5, padx=(0, 0), pady=5)
 
         # Create frames for each tab
@@ -48,7 +48,7 @@ class App:
         self.task5_frame = Task5(self.root)  
         self.task6_frame = Task6(self.root)  
 
-        self.show_task6()  # Show Task 1 by default
+        self.show_task2()  # Show Task 1 by default
 
     def show_task1(self):
         self.task2_frame.hide()  # Hide Task 2

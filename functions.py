@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 from task1_files.DSP_Task2_TEST_functions import *
 
@@ -32,6 +33,38 @@ def ReadSignals(file_path):
         indices = list(samples.keys())
         values = list(samples.values())
     return indices, values, samples
+
+
+def ReadSignalValues(file_path):
+    signal_values = []
+    indices = []
+    
+    with open(file_path, 'r') as file:
+        for idx, line in enumerate(file):  # `idx` will be the line number (index)
+            # Strip any whitespace or newline characters and convert to integer
+            stripped_line = line.strip()
+            if stripped_line.isdigit():
+                signal_values.append(int(stripped_line))
+                indices.append(idx)  # Store the index (line number)
+            else:
+                print(f"Skipping invalid line: {line}")
+    
+    return indices, signal_values
+
+# read multiple files from a dir
+def ReadSignalsFromDir(signals_dir, max_files=5):
+
+    signals_data = []
+    try:
+        txt_files = [f for f in os.listdir(signals_dir) if f.endswith('.txt')]
+        for i, file_name in enumerate(txt_files[:max_files]):
+            file_path = os.path.join(signals_dir, file_name)
+            signals_data.append(ReadSignalValues(file_path))
+    except FileNotFoundError:
+        print(f"Error: Directory '{signals_dir}' was not found.")
+    except Exception as e:
+        print(f"An unexpected error occurred while processing the directory: {e}")
+    return signals_data
 
 def add_signals(signal_a, signal_b):
     combined = {}
@@ -125,4 +158,5 @@ def CompareOutput(Your_indices, Your_samples, output_file):
             print("Comparing Test case failed, your signal have different values from the expected one")
             return
     print("Comparing Test case passed successfully")
+
 

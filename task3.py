@@ -12,16 +12,22 @@ class Task3:
     def __init__(self, parent):
         self.parent = parent
 
+        # Configure the root window to center
+        self.parent.grid_rowconfigure(1, weight=1)
+        self.parent.grid_columnconfigure(1, weight=1)
+
         # Create GUI Components
         self.frame = tk.Frame(self.parent)
-        self.frame.grid(padx=10, pady=10)  
+        self.frame.grid(row=1, column=0, sticky="nsew")
+
+        # Center all rows and columns in the frame
+        for i in range(8):  # Adjust number of rows based on content
+            self.frame.grid_rowconfigure(i, weight=1)
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=1)
 
         large_font = ('Helvetica', 14)
 
-        # Figure and canvas for plotting
-        self.fig, self.ax = plt.subplots()
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
-        self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
 
         self.num_of_bits = tk.IntVar(value=0)  # Initialize to 0 instead of None
         self.num_of_levels = tk.IntVar(value=0)  # Initialize to 0
@@ -46,6 +52,11 @@ class Task3:
         # Generate the signal
         generate_button = ttk.Button(self.frame, text="Generate Signal", command=self.choose_test, style='Large.TButton')
         generate_button.grid(row=6, column=0, columnspan=2, rowspan= 1, pady=10)
+
+        # Figure and canvas for plotting
+        self.fig, self.ax = plt.subplots()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
+        self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
 
         self.signal = None
         self.midpoints = []
