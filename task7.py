@@ -31,7 +31,7 @@ class Task7:
         large_font = ('Helvetica', 14)
 
 
-        self.filter_type = tk.StringVar(value='bandpass')  
+        self.filter_type = tk.StringVar(value='bandstop')  
         self.fs = tk.IntVar(value=1000)  
         self.stop_atten = tk.IntVar(value=60)  
         self.fc = tk.StringVar(value='150, 250')  
@@ -67,23 +67,18 @@ class Task7:
         self.canvas.get_tk_widget().grid(row=8, column=0, columnspan=2, pady=10)
 
     def print_filter_parameters(self):
-        # Get and print the filter type
-        filter_type = self.filter_type.get().lower()  # low, high, pass, reject
+        filter_type = self.filter_type.get().lower() 
         print(f"Filter Type: {filter_type}")
         
-        # Get and print the sampling frequency
-        fs = float(self.fs.get())  # Sampling frequency
+        fs = float(self.fs.get())  
         print(f"Sampling Frequency (fs): {fs}")
         
-        # Get and print the stop band attenuation
-        stop_atten = float(self.stop_atten.get())  # Stop band attenuation
+        stop_atten = float(self.stop_atten.get())  
         print(f"Stop Band Attenuation: {stop_atten} dB")
         
-        # Get and print the transition band
-        transition_band = float(self.transition_band.get())  # Transition band
+        transition_band = float(self.transition_band.get())  
         print(f"Transition Band: {transition_band} Hz")
         
-        # Parse and print the cut-off frequency
         fc_input = self.fc.get()
         if ',' in fc_input:
             fc = [float(f) for f in fc_input.split(',')]
@@ -101,7 +96,6 @@ class Task7:
         stop_atten = float(self.stop_atten.get()) #stop band attention
         transition_band = float(self.transition_band.get())
 
-        # Parse cut-off frequency
         fc_input = self.fc.get()
         if ',' in fc_input:
             fc = [float(f) for f in fc_input.split(',')]
@@ -109,29 +103,33 @@ class Task7:
             fc = float(fc_input)
               
         self.print_filter_parameters()
-        # Design filter
-         # Choose appropriate window type based on stop-band attenuation
+
+
         window_type, window_constant = choose_window(stop_atten)
         N = calculate_N(transition_band, window_constant, fs)
         print("N: ", N)
 
-        h = design_fir_filter(filter_type, fs, fc, window_type, N, transition_band) #filter
+        coefficients, fc_low, fc_high = design_fir_filter(filter_type, fs, fc, window_type, N, transition_band) #filter
         # Generate indices for coefficients
-        print("len h : ", len(h))
-        indices = np.arange(-len(h)//2 +1, len(h)//2 +1)
+        print("len h : ", len(coefficients))
+        indices = np.arange(-len(coefficients)//2 +1, len(coefficients)//2 +1)
 
         # Ensure indices match the length of h
-        if len(indices) > len(h):
+        if len(indices) > len(coefficients):
             indices = indices[:-1]  # Trim extra index if lengths differ
         print(indices)
 
         path1= 'task7_files\FIR test cases\Testcase 1\LPFCoefficients.txt'
         path3 = 'task7_files\FIR test cases\Testcase 3\HPFCoefficients.txt'
         path5 = 'task7_files\FIR test cases\Testcase 5\BPFCoefficients.txt'
+        path7 = 'task7_files\FIR test cases\Testcase 7\BSFCoefficients.txt'
         #والقائمة تطول
         # Save coefficients to file
-        np.savetxt("FIR_Coefficients.txt", np.column_stack((indices, h)), fmt="%d %.10f")
-        Compare_Signals(path5, indices, h)
+        np.savetxt("FIR_Coefficients.txt", np.column_stack((indices, coefficients)), fmt="%d %.10f")
+        Compare_Signals(path7, indices, coefficients)
+
+
+        self.plot_filter(coefficients, filter_type, fc_low, fc_high )
 
 
 
@@ -140,6 +138,26 @@ class Task7:
 
     def hide(self):
         self.frame.grid_forget()
+
+        
+    def plot_filter(self, coefficients, filter_type, fc_low, fc_high):
+        self.ax.clear()
+
+        coefficients = np.array(coefficients)
+        # Generate the x-axis index
+        indices = np.arange(-len(coefficients)//2 +1, len(coefficients)//2 +1)
+
+        # Plot the coefficients
+        self.ax.plot(indices, coefficients, marker='o', linestyle='-', color='b')
+
+        # Add titles and labels
+        self.ax.set_title("Filter Coefficients")
+        self.ax.set_xlabel("Index")
+        self.ax.set_ylabel("Coefficient Value")
+
+        # Display the plot
+        self.ax.grid(True)
+        self.canvas.draw()
 
 def calculate_N(transition_band, window_constant, fs):
     delta_f = transition_band / fs  # Normalized transition band
@@ -160,11 +178,13 @@ def design_fir_filter(filter_type, fs, fc,window_type, N, transition_band):
         fc_adjusted = [fc[0], fc[1]]
 
     # Compute impulse response and window
-    hd, _ = ideal_impulse_response(filter_type, fc_adjusted, N, fs, transition_band)
+    hd, middleindex, fc_low, fc_high  = ideal_impulse_response(filter_type, fc_adjusted, N, fs, transition_band)
     w = compute_window(N, window_type)
     h = np.array(hd) * np.array(w)
+    print("h[M]: ", h[middleindex])
+    print("w[M]: ", w[middleindex])
 
-    return h
+    return h, fc_low, fc_high
 
 
 # Function to compute the ideal impulse response
@@ -175,9 +195,12 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
     if filter_type in ['low', 'high']:
         fc_low = fc + transition_band/2
         fc_high = fc - transition_band/2
-    else:
+    elif filter_type == 'bandpass':
         fc_low = fc[0] - transition_band/2
         fc_high = fc[1] + transition_band/2
+    else:
+        fc_low = fc[0] + transition_band/2
+        fc_high = fc[1] - transition_band/2
 
     for n in range(N):
         if n == M:
@@ -186,10 +209,12 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
             elif filter_type == 'high':
                 h[n] = 1 - 2 * fc_high / fs
             elif filter_type == 'bandpass':
-                h[n] = (2 * fc_high/fs) - (2 * fc_low/fs)
-                print("innnnnnn --> h[M]: ", h[n])
+                h[n] = (2 * fc_low/fs) - (2 * fc_high/fs)
             elif filter_type == 'bandstop':
-                h[n] = 1 - 2 * (fc_high - fc_low) / fs
+                old = (2 * (fc[1] + transition_band/2)/fs) - (2 * (fc[0] - transition_band/2)/fs)
+                h[n] = 1 - (2 * (fc[1] - transition_band/2)/fs) - (2 * (fc[0] + transition_band/2)/fs) +1-old
+                #h[n] =  2 - (4 * fc[1] / fs) - (4 * fc[0] / fs)
+
         else:
             if filter_type == 'low':
                 h[n] = np.sin(2 * np.pi * fc_low * (n - M) / fs) / (np.pi * (n - M))
@@ -201,8 +226,11 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
                 h_low = 2 * fc_low/fs * np.sin(2* np.pi * fc_low * (n - M) / fs) / (2* np.pi * (n - M) * fc_low / fs)
                 h[n] = h_high - h_low
             elif filter_type == 'bandstop':
-                h[n] = (np.sin(2 * np.pi * fc_low * (n - M) / fs) - np.sin(2 * np.pi * fc_high * (n - M) / fs)/ (np.pi * (n - M) * fc_high/fs)) 
-    return h , M
+                # Calculate the bandpass filter response
+                h_high = 2 * fc_high/fs * np.sin(2 * np.pi * fc_high * (n - M) / fs) / (2 * np.pi * (n - M) * fc_high / fs)
+                h_low = 2 * fc_low/fs * np.sin(2* np.pi * fc_low * (n - M) / fs) / (2* np.pi * (n - M) * fc_low / fs)
+                h[n] =  h_low- h_high
+    return h ,M,  fc_low, fc_high
 
 # Function to choose window type based on stop-band attenuation
 def choose_window(stop_atten):
@@ -239,7 +267,7 @@ def compute_window(N, window_type):
         index = 0
         N = N - 1
         for n in range(-N//2, N//2):  # Loop from -N/2 to N/2
-            window[index] = 0.4200000 + (0.5000000 * np.cos(2 * np.pi * n/N)) + (0.0800000 * np.cos(4 * np.pi * n /N))
+            window[index] = round(0.42 + (0.5 * np.cos(2 * np.pi * n/N)) + (0.08* np.cos(4 * np.pi * n /N)),2)
             index+=1
             
     else:
@@ -247,4 +275,3 @@ def compute_window(N, window_type):
 
     return window
     
-

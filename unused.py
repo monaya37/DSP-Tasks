@@ -51,3 +51,44 @@ def correlation_fast(self, signal1, signal2, output_file):
 self.fig, self.ax = plt.subplots()
 self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
 self.canvas.get_tk_widget().grid(row=7, column=0, columnspan=2, pady=10)
+
+
+
+#######################################################################
+
+
+        # Compute the frequency response using FFT
+        N = len(coefficients)
+        frequency_response = np.fft.fft(coefficients, N)
+
+        # Frequency axis (assume fs = 1 Hz for simplicity)
+        freq = np.fft.fftfreq(N, d=1)  # Frequency axis in Hz
+
+        # Compute the magnitude of the frequency response
+        magnitude = np.abs(frequency_response)
+
+
+        # Plot the magnitude response
+        self.ax.plot(freq[:N // 2], magnitude[:N // 2], label="Frequency Response")
+        # Highlight the passband and stopband with adjusted transparency
+        if filter_type == 'low':
+            self.ax.axvspan(0, fc_low, color='green', alpha=0.1, label='Passband')  # More transparent
+            self.ax.axvspan(fc_low, 0.5, color='red', alpha=0.5, label='Stopband')  # Less transparent
+        elif filter_type == 'high':
+            self.ax.axvspan(0, fc_high, color='red', alpha=0.5, label='Stopband')  # Less transparent
+            self.ax.axvspan(fc_high, 0.5, color='green', alpha=0.1, label='Passband')  # More transparent
+        elif filter_type == 'bandpass':
+            self.ax.axvspan(0, fc_low, color='red', alpha=0.5, label='Stopband')  # Less transparent
+            self.ax.axvspan(fc_low, fc_high, color='green', alpha=0.3, label='Passband')  # Medium transparency
+            self.ax.axvspan(fc_high, 0.5, color='red', alpha=0.5, label='Stopband')  # Less transparent
+        elif filter_type == 'bandstop':
+            self.ax.axvspan(0, fc_low, color='green', alpha=0.3, label='Passband')  # Medium transparency
+            self.ax.axvspan(fc_low, fc_high, color='red', alpha=0.7, label='Stopband')  # Less transparent
+            self.ax.axvspan(fc_high, 0.5, color='green', alpha=0.3, label='Passband')  # Medium transparency
+
+
+        self.ax.set_title("Frequency Response of the Filter")
+        self.ax.set_xlabel("Frequency (Hz)")
+        self.ax.set_ylabel("Magnitude")
+        self.ax.grid(True)
+        self.canvas.draw()
