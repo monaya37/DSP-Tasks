@@ -9,6 +9,94 @@ import math
 from task6_files.CompareSignal import Compare_Signals
 #np.set_printoptions(precision=10)  # Adjust the precision as needed
 
+#######################################################################
+def correlation(signal1, signal2):
+
+    _, values1 = signal1
+    _, values2 = signal2
+    N = len(values1)
+
+    samples = {}
+    for n in range(N):
+        counter = 0
+        for k in range(N):
+            counter += values1[k]* values2[k]
+        values2 = shift_left(values2)
+        samples[n] = counter / N
+
+    samples = calculate_normalization(values1, values2, samples)
+    indices = list(samples.keys())
+    values = list(samples.values())
+    
+    return samples, indices, values
+
+
+
+def shift_left(list):
+    return np.roll(list, -1)
+
+def get_max(values):
+    return np.argmax(np.abs(values))
+    
+def calculate_normalization(a, b, rj):
+        N = len(rj)
+        p = {}
+        
+        squares1 = sum([x**2 for x in a])
+        squares2 = sum([x**2 for x in b])
+        normalization_factor = (1/N) * (math.sqrt(abs(squares1 * squares2)))
+
+        for k in range(N):
+            p[k] = rj[k]/ normalization_factor
+        return p
+
+def calculate_time_delay(signal1, signal2, sampling_frequency, expected_lag=None):
+    print("Starting correlation calculation...")
+
+    # Calculate the periodic cross-correlation
+    _, _, correlation_values = correlation(signal1, signal2)
+    print(f"Correlation calculated: {correlation_values}")
+
+
+    if expected_lag is not None:
+        # Use the expected lag to calculate the time delay
+        lag = expected_lag
+        print(f"Using expected lag (j): {lag}")
+    else:
+        # Find the lag corresponding to the maximum absolute value of the correlation
+        max_corr_index = get_max(correlation_values)
+        print(f"Index of maximum correlation: {max_corr_index}")
+        lag = max_corr_index 
+        print(f"Calculated lag (j): {lag}")
+
+    # Calculate time delay
+    time_delay = abs(lag) / sampling_frequency
+    print(f"Calculated time delay: {time_delay}")
+
+    return time_delay
+
+
+def classify_signal(class1_signals,  class2_signals, test_signal):
+         
+    up_correlations = []
+    for signal in class1_signals:
+        _, _, corr_values = correlation(signal, test_signal)
+        max = get_max(corr_values)
+        up_correlations.append(max)
+
+    down_correlations = []
+    for signal in class2_signals:
+        _, _, corr_values = correlation(signal, test_signal)
+        max = get_max(corr_values)
+        down_correlations.append(max)
+    
+    up_avg = sum(up_correlations) / len(up_correlations)
+    down_avg = sum(down_correlations) / len(down_correlations)
+
+    if down_avg > up_avg:
+        return "Class 1 (Down movement)"
+    else:
+        return "Class 2 (Up movement)"
 
 
 class Task6:
@@ -132,91 +220,3 @@ class Task6:
 
 
     
-#######################################################################
-def correlation(signal1, signal2):
-
-    _, values1 = signal1
-    _, values2 = signal2
-    N = len(values1)
-
-    samples = {}
-    for n in range(N):
-        counter = 0
-        for k in range(N):
-            counter += values1[k]* values2[k]
-        values2 = shift_left(values2)
-        samples[n] = counter / N
-
-    samples = calculate_normalization(values1, values2, samples)
-    indices = list(samples.keys())
-    values = list(samples.values())
-    
-    return samples, indices, values
-
-
-
-def shift_left(list):
-    return np.roll(list, -1)
-
-def get_max(values):
-    return np.argmax(np.abs(values))
-    
-def calculate_normalization(a, b, rj):
-        N = len(rj)
-        p = {}
-        
-        squares1 = sum([x**2 for x in a])
-        squares2 = sum([x**2 for x in b])
-        normalization_factor = (1/N) * (math.sqrt(abs(squares1 * squares2)))
-
-        for k in range(N):
-            p[k] = rj[k]/ normalization_factor
-        return p
-
-def calculate_time_delay(signal1, signal2, sampling_frequency, expected_lag=None):
-    print("Starting correlation calculation...")
-
-    # Calculate the periodic cross-correlation
-    _, _, correlation_values = correlation(signal1, signal2)
-    print(f"Correlation calculated: {correlation_values}")
-
-
-    if expected_lag is not None:
-        # Use the expected lag to calculate the time delay
-        lag = expected_lag
-        print(f"Using expected lag (j): {lag}")
-    else:
-        # Find the lag corresponding to the maximum absolute value of the correlation
-        max_corr_index = get_max(correlation_values)
-        print(f"Index of maximum correlation: {max_corr_index}")
-        lag = max_corr_index 
-        print(f"Calculated lag (j): {lag}")
-
-    # Calculate time delay
-    time_delay = abs(lag) / sampling_frequency
-    print(f"Calculated time delay: {time_delay}")
-
-    return time_delay
-
-
-def classify_signal(class1_signals,  class2_signals, test_signal):
-         
-    up_correlations = []
-    for signal in class1_signals:
-        _, _, corr_values = correlation(signal, test_signal)
-        max = get_max(corr_values)
-        up_correlations.append(max)
-
-    down_correlations = []
-    for signal in class2_signals:
-        _, _, corr_values = correlation(signal, test_signal)
-        max = get_max(corr_values)
-        down_correlations.append(max)
-    
-    up_avg = sum(up_correlations) / len(up_correlations)
-    down_avg = sum(down_correlations) / len(down_correlations)
-
-    if down_avg > up_avg:
-        return "Class 1 (Down movement)"
-    else:
-        return "Class 2 (Up movement)"
