@@ -66,6 +66,13 @@ class Task7:
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas.get_tk_widget().grid(row=8, column=0, columnspan=2, pady=10)
 
+        self.path1= 'task7_files\FIR test cases\Testcase 1\LPFCoefficients.txt'
+        self.path3 = 'task7_files\FIR test cases\Testcase 3\HPFCoefficients.txt'
+        self.path5 = 'task7_files\FIR test cases\Testcase 5\BPFCoefficients.txt'
+        self.path7 = 'task7_files\FIR test cases\Testcase 7\BSFCoefficients.txt'
+
+        self.path8 = 'task7_files\FIR test cases\Testcase 8\ecg400.txt'
+
     def print_filter_parameters(self):
         filter_type = self.filter_type.get().lower() 
         print(f"Filter Type: {filter_type}")
@@ -107,29 +114,19 @@ class Task7:
 
         window_type, window_constant = choose_window(stop_atten)
         N = calculate_N(transition_band, window_constant, fs)
-        print("N: ", N)
+        indices, coefficients = design_fir_filter(filter_type, fs, fc, window_type, N, transition_band) #filter
 
-        coefficients, fc_low, fc_high = design_fir_filter(filter_type, fs, fc, window_type, N, transition_band) #filter
-        # Generate indices for coefficients
-        print("len h : ", len(coefficients))
-        indices = np.arange(-len(coefficients)//2 +1, len(coefficients)//2 +1)
+        #x, vals = ReadSignalFile('task7_files\FIR test cases\Testcase 8\ecg400.txt')
 
-        # Ensure indices match the length of h
-        if len(indices) > len(coefficients):
-            indices = indices[:-1]  # Trim extra index if lengths differ
-        print(indices)
+        #indices, coefficients = ecg(len(vals), filter_type, fc[0], fc[1], fs, transition_band, stop_atten, vals)
 
-        path1= 'task7_files\FIR test cases\Testcase 1\LPFCoefficients.txt'
-        path3 = 'task7_files\FIR test cases\Testcase 3\HPFCoefficients.txt'
-        path5 = 'task7_files\FIR test cases\Testcase 5\BPFCoefficients.txt'
-        path7 = 'task7_files\FIR test cases\Testcase 7\BSFCoefficients.txt'
         #والقائمة تطول
         # Save coefficients to file
         np.savetxt("FIR_Coefficients.txt", np.column_stack((indices, coefficients)), fmt="%d %.10f")
-        Compare_Signals(path7, indices, coefficients)
+        Compare_Signals(self.path7, indices, coefficients)
 
 
-        self.plot_filter(coefficients, filter_type, fc_low, fc_high )
+        self.plot_filter(coefficients)
 
 
 
@@ -140,7 +137,7 @@ class Task7:
         self.frame.grid_forget()
 
         
-    def plot_filter(self, coefficients, filter_type, fc_low, fc_high):
+    def plot_filter(self, coefficients):
         self.ax.clear()
 
         coefficients = np.array(coefficients)
@@ -161,30 +158,26 @@ class Task7:
 
 def calculate_N(transition_band, window_constant, fs):
     delta_f = transition_band / fs  # Normalized transition band
-
-    # Calculate N dynamically based on the transition width
     N = int(np.ceil(window_constant / delta_f))
     if N % 2 == 0:
         N += 1  # Ensure N is odd
     return N
 
-# Function to design the FIR filter
 def design_fir_filter(filter_type, fs, fc,window_type, N, transition_band):
     
-
     if filter_type in ['low', 'high']:
         fc_adjusted = fc
     else:
         fc_adjusted = [fc[0], fc[1]]
 
-    # Compute impulse response and window
-    hd, middleindex, fc_low, fc_high  = ideal_impulse_response(filter_type, fc_adjusted, N, fs, transition_band)
+    hd, middleindex = ideal_impulse_response(filter_type, fc_adjusted, N, fs, transition_band)
     w = compute_window(N, window_type)
     h = np.array(hd) * np.array(w)
     print("h[M]: ", h[middleindex])
     print("w[M]: ", w[middleindex])
+    indices = np.arange(-len(h)//2 +1, len(h)//2 +1)
 
-    return h, fc_low, fc_high
+    return indices, h
 
 
 # Function to compute the ideal impulse response
@@ -202,6 +195,7 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
         fc_low = fc[0] + transition_band/2
         fc_high = fc[1] - transition_band/2
 
+
     for n in range(N):
         if n == M:
             if filter_type == 'low':
@@ -212,8 +206,8 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
                 h[n] = (2 * fc_low/fs) - (2 * fc_high/fs)
             elif filter_type == 'bandstop':
                 old = (2 * (fc[1] + transition_band/2)/fs) - (2 * (fc[0] - transition_band/2)/fs)
-                h[n] = 1 - (2 * (fc[1] - transition_band/2)/fs) - (2 * (fc[0] + transition_band/2)/fs) +1-old
-                #h[n] =  2 - (4 * fc[1] / fs) - (4 * fc[0] / fs)
+                h[n] = 2 - (2 * (fc[1] - transition_band/2)/fs) - (2 * (fc[0] + transition_band/2)/fs) -old
+                #h[n] = 2 - 4*(fc[1] -fc[0])/fs
 
         else:
             if filter_type == 'low':
@@ -221,18 +215,15 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
             elif filter_type == 'high':
                 h[n] = -np.sin(2 * np.pi * fc_high * (n - M) / fs) / (np.pi * (n - M))
             elif filter_type == 'bandpass':               
-                # Calculate the bandpass filter response
                 h_high = 2 * fc_high/fs * np.sin(2 * np.pi * fc_high * (n - M) / fs) / (2 * np.pi * (n - M) * fc_high / fs)
                 h_low = 2 * fc_low/fs * np.sin(2* np.pi * fc_low * (n - M) / fs) / (2* np.pi * (n - M) * fc_low / fs)
                 h[n] = h_high - h_low
             elif filter_type == 'bandstop':
-                # Calculate the bandpass filter response
                 h_high = 2 * fc_high/fs * np.sin(2 * np.pi * fc_high * (n - M) / fs) / (2 * np.pi * (n - M) * fc_high / fs)
                 h_low = 2 * fc_low/fs * np.sin(2* np.pi * fc_low * (n - M) / fs) / (2* np.pi * (n - M) * fc_low / fs)
                 h[n] =  h_low- h_high
-    return h ,M,  fc_low, fc_high
+    return h ,M
 
-# Function to choose window type based on stop-band attenuation
 def choose_window(stop_atten):
     if stop_atten <= 21:
         return 'rectangular', 0.9
@@ -243,7 +234,6 @@ def choose_window(stop_atten):
     else:
         return 'blackman', 5.5
 
-# Function to compute the window
 def compute_window(N, window_type):
  
     window = np.zeros(N)
@@ -275,3 +265,22 @@ def compute_window(N, window_type):
 
     return window
     
+
+def ecg(N, filter_type, fc_low, fc_high, fs, transition_band, stop_atten, ecg_signal):
+    M = N-1 // 2
+
+    if(filter_type == 'bandstop'):
+        # Ideal low-pass and high-pass filters
+        hd_low = np.sinc(2 * fc_low * (N) / fs)
+        hd_high = np.sinc(2 * fc_high * (N) / fs)
+        hd = hd_low - hd_high
+
+    window_type, window_constant = choose_window(stop_atten)
+    w = compute_window(N, window_type)
+    #N = calculate_N(transition_band, window_constant, fs)
+
+    h = hd * w
+    y = np.convolve(ecg_signal, h, mode='same')  # Convolution with 'same' mode to maintain signal length
+    indices = np.arange(-len(y)//2 +1, len(y)//2 +1)
+
+    return indices , y
