@@ -225,3 +225,68 @@ def idft(input_signal):
     
     amplitude = list(samples.values())
     return amplitude
+
+
+def direct_convolution(x, h):
+    N = len(x)
+    M = len(h)
+    # Initialize the output array with zeros
+    y = np.zeros(N + M - 1)
+    
+    # Perform the convolution
+    for n in range(len(y)):
+        for m in range(M):
+            if 0 <= n - m < N:
+                y[n] += h[m] * x[n - m]
+    return y
+
+
+def fft_convolution(x, h):
+    N = len(x)
+    M = len(h)
+    # Zero pad both x and h to length N + M - 1
+    N_pad = N + M - 1
+    X = np.fft.fft(x, N_pad)
+    H = np.fft.fft(h, N_pad)
+    
+    # Multiply in frequency domain and take inverse FFT
+    Y = np.fft.ifft(X * H).real
+    return Y
+
+
+
+
+
+
+
+
+
+    def print_filter_params(self):
+        # Retrieve the values from the Tkinter variables
+        filter_type = self.filter_type.get().lower() 
+        fs = self.fs.get()  
+        stop_atten = self.stop_atten.get()  
+        transition_band = self.transition_band.get()  
+        fc_input = self.fc.get()
+
+        # Print the filter type
+        print(f"Filter Type: {filter_type}")
+        
+        # Print the sampling frequency
+        print(f"Sampling Frequency (fs): {fs} Hz")
+        
+        # Print stop band attenuation
+        print(f"Stop Band Attenuation: {stop_atten} dB")
+        
+        # Print transition band
+        print(f"Transition Band: {transition_band} Hz")
+        
+        # Check if 'fc' is a single value or a range of values
+        if ',' in fc_input:
+            # If a range (comma-separated), split and print as a list of frequencies
+            fc = [float(f) for f in fc_input.split(',')]
+            print(f"Cut-off Frequencies: {fc[0]} Hz to {fc[1]} Hz")
+        else:
+            # If single frequency, print the value
+            fc = fc_input
+            print(f"Cut-off Frequency: {fc} Hz")

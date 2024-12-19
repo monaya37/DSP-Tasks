@@ -31,11 +31,11 @@ class Task7:
         large_font = ('Helvetica', 14)
 
 
-        self.filter_type = tk.StringVar(value='bandpass')  
-        self.fs = tk.IntVar(value=1000)  
-        self.stop_atten = tk.IntVar(value=60)  
-        self.fc = tk.StringVar(value='150, 250')  
-        self.transition_band = tk.StringVar(value=50)  
+        self.filter_type = tk.StringVar()  
+        self.fs = tk.IntVar()  
+        self.stop_atten = tk.IntVar()  
+        self.fc = tk.StringVar()  
+        self.transition_band = tk.StringVar()  
 
 
         ttk.Label(self.frame, text="Filter Type (low, high, bandpass, bandstop):", font=large_font).grid(row=2, column=0, pady=self.pady, sticky="w")
@@ -58,7 +58,7 @@ class Task7:
         style.configure('Large.TButton', font=large_font)
 
         # Generate the signal
-        generate_button = ttk.Button(self.frame, text="Generate Signal", command=self.design_filter, style='Large.TButton')
+        generate_button = ttk.Button(self.frame, text="Generate Signal", command=self.choose_test, style='Large.TButton')
         generate_button.grid(row=7, column=0, columnspan=2, rowspan= 1, pady=10)
 
         # Figure and canvas for plotting
@@ -66,68 +66,95 @@ class Task7:
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas.get_tk_widget().grid(row=8, column=0, columnspan=2, pady=10)
 
-        self.path1 = 'task7_files\FIR test cases\Testcase 1\LPFCoefficients.txt'
-        self.path3 = 'task7_files\FIR test cases\Testcase 3\HPFCoefficients.txt'
-        self.path5 = 'task7_files\FIR test cases\Testcase 5\BPFCoefficients.txt'
-        self.path7 = 'task7_files\FIR test cases\Testcase 7\BSFCoefficients.txt'
 
-        self.path2 = 'task7_files\FIR test cases\Testcase 2\ecg_low_pass_filtered.txt'
-        self.path6 = 'task7_files\FIR test cases\Testcase 6\ecg_band_pass_filtered.txt'
-        self.path8 = 'task7_files\FIR test cases\Testcase 8\ecg_band_stop_filtered.txt'
+            # Paths stored dynamically
+        self.filter_output_paths = {
+            1: 'task7_files\FIR test cases\Testcase 1\LPFCoefficients.txt',
+            2: 'task7_files\FIR test cases\Testcase 3\HPFCoefficients.txt',
+            3: 'task7_files\FIR test cases\Testcase 5\BPFCoefficients.txt',
+            4: 'task7_files\FIR test cases\Testcase 7\BSFCoefficients.txt'
+        }
+            # Paths stored dynamically
+        self.ecg_output_paths = {
+            1: 'task7_files\FIR test cases\Testcase 2\ecg_low_pass_filtered.txt',
+            2: 'task7_files\FIR test cases\Testcase 4\ecg_high_pass_filtered.txt',
+            3: 'task7_files\FIR test cases\Testcase 6\ecg_band_pass_filtered.txt',
+            4: 'task7_files\FIR test cases\Testcase 8\ecg_band_stop_filtered.txt'
+        }
+        self.ecg_input_paths = {
+            1: 'task7_files\FIR test cases\Testcase 2\ecg400.txt',
+            2: 'task7_files\FIR test cases\Testcase 4\ecg400.txt',
+            3: 'task7_files\FIR test cases\Testcase 6\ecg400.txt',
+            4: 'task7_files\FIR test cases\Testcase 8\ecg400.txt'
+        }
+        self.filter_specifications_paths = {
+            1: 'task7_files\FIR test cases\Testcase 1\Filter Specifications.txt',
+            2: 'task7_files\FIR test cases\Testcase 3\Filter Specifications.txt',
+            3: 'task7_files\FIR test cases\Testcase 5\Filter Specifications.txt',
+            4: 'task7_files\FIR test cases\Testcase 7\Filter Specifications.txt'
+        }
 
-    def print_filter_parameters(self):
-        filter_type = self.filter_type.get().lower() 
-        print(f"Filter Type: {filter_type}")
+
+    def read_filter_specifications(self, filepath):
+        filter_params = {}
+
+        if not os.path.exists(filepath):
+            print(f"File not found: {filepath}")
+            return filter_params
         
-        fs = float(self.fs.get())  
-        print(f"Sampling Frequency (fs): {fs}")
-        
-        stop_atten = float(self.stop_atten.get())  
-        print(f"Stop Band Attenuation: {stop_atten} dB")
-        
-        transition_band = float(self.transition_band.get())  
-        print(f"Transition Band: {transition_band} Hz")
-        
-        fc_input = self.fc.get()
-        if ',' in fc_input:
-            fc = [float(f) for f in fc_input.split(',')]
-            print(f"Cut-off Frequencies: {fc}")
-        else:
-            fc = float(fc_input)
-            print(f"Cut-off Frequency: {fc} Hz")
+        # Open the file and read the lines
+        with open(filepath, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                try:
+                    key, value = line.split('=', 1)
+                    key = key.strip()
+                    value = value.strip()
+                    
+                    # Update the GUI variables based on the key
+                    if key == "FilterType":
+                        self.filter_type.set(value.lower())  # Set filter type (e.g., 'high')
+                        filter_params["FilterType"] = value.lower()
+                    elif key == "FS":
+                        self.fs.set(int(value))  # Set sampling frequency
+                        filter_params["FS"] = int(value)
+                    elif key == "StopBandAttenuation":
+                        self.stop_atten.set(int(value))  # Set stop band attenuation
+                        filter_params["StopBandAttenuation"] = int(value)
+                    elif key == "FC":
+                        self.fc.set(value)  # Set cut-off frequency (string for flexibility)
+                        filter_params["FC"] = int(value)
+                    elif key == "F1":
+                        filter_params["FC"] = []
+                        filter_params["FC"].append(int(value))
+                    elif key == "F2":
+                        if "FC" in filter_params and isinstance(filter_params["FC"], list):
+                            filter_params["FC"].append(int(value))                    
+                    elif key == "TransitionBand":
+                        self.transition_band.set(value)  # Set transition band
+                        filter_params["TransitionBand"] = int(value)
+                except ValueError:
+                    print(f"Skipping invalid line: {line}")
+        return filter_params 
 
 
 
-    def design_filter(self):
+    def choose_test(self, test = 4):
+        filter_params = self.read_filter_specifications(self.filter_specifications_paths[test])
 
-        filter_type = self.filter_type.get().lower() # low , high, pass, reject
-        fs = float(self.fs.get()) #sampling frequency
-        stop_atten = float(self.stop_atten.get()) #stop band attention
-        transition_band = float(self.transition_band.get())
+        ecg_indices, ecg_coefficients = ReadSignalFile(self.ecg_input_paths[test])
 
-        fc_input = self.fc.get()
-        if ',' in fc_input:
-            fc = [float(f) for f in fc_input.split(',')]
-        else:
-            fc = float(fc_input)
-              
-        self.print_filter_parameters()
+        filter_indices, filter_coefficients = design_fir_filter(filter_params['FilterType'], filter_params['FS'], filter_params['FC'], filter_params['StopBandAttenuation'], filter_params['TransitionBand'])
+        indices, coefficients = ecg(ecg_indices, ecg_coefficients, filter_indices, filter_coefficients)
 
+        Compare_Signals(self.filter_output_paths[test], filter_indices, filter_coefficients)
+        Compare_Signals(self.ecg_output_paths[test], indices, coefficients)
 
-        #indices, coefficients = design_fir_filter(filter_type, fs, fc, stop_atten,transition_band) #filter
-        ecg2 = 'task7_files\FIR test cases\Testcase 2\ecg400.txt'
-        ecg8 = 'task7_files\FIR test cases\Testcase 8\ecg400.txt'
-        ecg6 = 'task7_files\FIR test cases\Testcase 6\ecg400.txt'
-        x, vals = ReadSignalFile(ecg6)
-
-        indices, coefficients = ecg(filter_type, fc, fs, transition_band, stop_atten, x, vals)
-        Compare_Signals(self.path6, indices, coefficients)
-
-        #والقائمة تطول
-        # Save coefficients to file
-        np.savetxt("FIR_Coefficients.txt", np.column_stack((indices, coefficients)), fmt="%d %.10f")
+        np.savetxt("FIR_Coefficients.txt", np.column_stack((filter_indices, filter_coefficients)), fmt="%d %.10f")
         self.plot_filter(coefficients)
-
 
 
     def display(self):
@@ -141,20 +168,15 @@ class Task7:
         self.ax.clear()
 
         coefficients = np.array(coefficients)
-        # Generate the x-axis index
         indices = np.arange(-len(coefficients)//2 +1, len(coefficients)//2 +1)
 
-        # Plot the coefficients
         self.ax.plot(indices, coefficients, marker='o', linestyle='-', color='b')
-
-        # Add titles and labels
         self.ax.set_title("Filter Coefficients")
         self.ax.set_xlabel("Index")
         self.ax.set_ylabel("Coefficient Value")
-
-        # Display the plot
         self.ax.grid(True)
         self.canvas.draw()
+        
 
 def calculate_N(transition_band, window_constant, fs):
     delta_f = transition_band / fs  # Normalized transition band
@@ -165,7 +187,7 @@ def calculate_N(transition_band, window_constant, fs):
 
 def design_fir_filter(filter_type, fs, fc, stop_atten, transition_band):
     
-    if filter_type in ['low', 'high']:
+    if filter_type in ['low pass', 'high pass']:
         fc_adjusted = fc
     else:
         fc_adjusted = [fc[0], fc[1]]
@@ -188,10 +210,10 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
     h = np.zeros(N)
     M = (N-1) // 2 # Ensure symmetry
 
-    if filter_type in ['low', 'high']:
+    if filter_type in ['low pass', 'high pass']:
         fc_low = fc + transition_band/2
         fc_high = fc - transition_band/2
-    elif filter_type == 'bandpass':
+    elif filter_type == 'band pass':
         fc_low = fc[0] - transition_band/2
         fc_high = fc[1] + transition_band/2
     else:
@@ -201,27 +223,27 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
 
     for n in range(N):
         if n == M:
-            if filter_type == 'low':
+            if filter_type == 'low pass':
                 h[n] = 2 * fc_low / fs
-            elif filter_type == 'high':
+            elif filter_type == 'high pass':
                 h[n] = 1 - 2 * fc_high / fs
-            elif filter_type == 'bandpass':
-                h[n] = (2 * fc_low/fs) - (2 * fc_high/fs)
-            elif filter_type == 'bandstop':
+            elif filter_type == 'band pass':
+                h[n] = (2 * fc_high/fs) - (2 * fc_low/fs) 
+            elif filter_type == 'band stop':
                 old = (2 * (fc[1] + transition_band/2)/fs) - (2 * (fc[0] - transition_band/2)/fs)
                 h[n] = 2 - (2 * (fc[1] - transition_band/2)/fs) - (2 * (fc[0] + transition_band/2)/fs) -old
                 #h[n] = 2 - 4*(fc[1] -fc[0])/fs
 
         else:
-            if filter_type == 'low':
+            if filter_type == 'low pass':
                 h[n] = np.sin(2 * np.pi * fc_low * (n - M) / fs) / (np.pi * (n - M))
-            elif filter_type == 'high':
+            elif filter_type == 'high pass':
                 h[n] = -np.sin(2 * np.pi * fc_high * (n - M) / fs) / (np.pi * (n - M))
-            elif filter_type == 'bandpass':               
+            elif filter_type == 'band pass':               
                 h_high = 2 * fc_high/fs * np.sin(2 * np.pi * fc_high * (n - M) / fs) / (2 * np.pi * (n - M) * fc_high / fs)
                 h_low = 2 * fc_low/fs * np.sin(2* np.pi * fc_low * (n - M) / fs) / (2* np.pi * (n - M) * fc_low / fs)
                 h[n] = h_high - h_low
-            elif filter_type == 'bandstop':
+            elif filter_type == 'band stop':
                 h_high = 2 * fc_high/fs * np.sin(2 * np.pi * fc_high * (n - M) / fs) / (2 * np.pi * (n - M) * fc_high / fs)
                 h_low = 2 * fc_low/fs * np.sin(2* np.pi * fc_low * (n - M) / fs) / (2* np.pi * (n - M) * fc_low / fs)
                 h[n] =  h_low- h_high
@@ -260,7 +282,7 @@ def compute_window(N, window_type):
         index = 0
         N = N - 1
         for n in range(-N//2, N//2):  # Loop from -N/2 to N/2
-            window[index] = round(0.42 + (0.5 * np.cos(2 * np.pi * n/N)) + (0.08* np.cos(4 * np.pi * n /N)),2)
+            window[index] = round(0.42 + (0.5 * np.cos(2 * np.pi * n/N)) + (0.08* np.cos(4 * np.pi * n /N)),6)
             index+=1
             
     else:
@@ -270,48 +292,21 @@ def compute_window(N, window_type):
     
 
 
-def ecg(filter_type, fc, fs, transition_band, stop_atten, ecg_indices, ecg_vals):
-    # Design the filter (assumed function)
-    h_indices, h_vals = design_fir_filter(filter_type, fs, fc, stop_atten, transition_band)
+def ecg(ecg_indices, ecg_vals, filter_indices, filter_coefficients):
     
+    indices = np.arange(ecg_indices[0] + filter_indices[0], ecg_indices[-1] + filter_indices[-1] + 1)
+
     method1 = True
     # Direct convolution (Method 1)
     if(method1):
-        indices, y = convolve(ecg_indices, ecg_vals, h_indices, h_vals)
+        #indices, y = convolve(ecg_indices, ecg_vals, filter_indices, filter_coefficients)
+        y = direct_convolution(ecg_vals, filter_coefficients)
     # Convolution using DFT (Method 2)
     else:
-        indices, y = convolve_dft(ecg_indices, ecg_vals, h_indices, h_vals)
-
+        indices, y = convolve_dft(ecg_indices, ecg_vals, filter_indices, filter_coefficients)
+        
 
     return indices, y
-
-def convolve(ecg_indices, ecg_vals, h_indices, h_vals):
-    y= {}
-
-    # Find the total length of the result after convolution
-    if(ecg_indices[0] <= h_indices[0]):
-        h = ecg_indices, ecg_vals
-        x = h_indices, h_vals
-        start = ecg_indices[0]
-        end = h_indices[-1] + ecg_indices[-1]
-    else:
-        x = ecg_indices, ecg_vals
-        h = h_indices, h_vals
-        start = h_indices[0]
-        end =  h_indices[-1] + ecg_indices[-1]
-    
-
-    for n in range(start, end+1):
-        y[n] = 0
-        for k in x[0]:
-            if((n - k) in h[0]):
-                y[n] += x[1][k] * h[1][n-k]
-
-
-    indices = list(y.keys())
-    values = list(y.values())
-
-    return indices, values
 
 
 def convolve_dft(ecg_indices, ecg_vals, h_indices, h_vals):
@@ -320,13 +315,23 @@ def convolve_dft(ecg_indices, ecg_vals, h_indices, h_vals):
     N_filter = len(h_vals)
     N = N_ecg + N_filter - 1  # Length of output signal
 
-    ecg_padded = np.pad(ecg_vals, (0, N - N_ecg), mode='constant')
-    filter_padded = np.pad(h_vals, (0, N - N_filter), mode='constant')
+    ecg_vals = np.array(ecg_vals)
+    print("h_val.shape = ", h_vals.shape)
+    print("egc_val.shape = ", ecg_vals.shape)
 
-    ecg_dft = dft(ecg_padded)
-    filter_dft = dft(filter_padded)
 
-    result_dft = ecg_dft * filter_dft
+    ecg_dft = dft(ecg_vals)
+    filter_dft = dft(h_vals)
+    print("filter_dft.shape = ", filter_dft.shape)
+    print("ecg_dft.shape = ", ecg_dft.shape)
+
+    filter_dft_padded = np.pad(filter_dft, (0, N - N_filter), mode='constant')
+    ecg_dft_padded = np.pad(ecg_dft, (0, N - N_ecg), mode='constant')
+
+    print("filter_dft_padded.shape = ", filter_dft_padded.shape)
+    print("ecg_dft_padded.shape = ", ecg_dft_padded.shape)
+
+    result_dft = filter_dft_padded * ecg_dft_padded 
     result_vals = idft(result_dft)
 
     # Adjust indices
@@ -353,5 +358,16 @@ def idft(input_signal):
         for k in range(N):
             samples[n] += input_signal[k] * np.exp(2j * np.pi * k * n / N)
     
-    # Normalize the result and return the real part
     return np.real(samples / N)
+
+def direct_convolution(x, h):
+    N = len(x)
+    M = len(h)
+    y = np.zeros(N + M - 1)
+    
+    # Perform the convolution
+    for n in range(len(y)):
+        for m in range(M):
+            if 0 <= n - m < N:
+                y[n] += h[m] * x[n - m]
+    return y
