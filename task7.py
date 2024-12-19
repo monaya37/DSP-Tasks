@@ -31,7 +31,7 @@ class Task7:
         large_font = ('Helvetica', 14)
 
 
-        self.filter_type = tk.StringVar(value='bandstop')  
+        self.filter_type = tk.StringVar(value='bandpass')  
         self.fs = tk.IntVar(value=1000)  
         self.stop_atten = tk.IntVar(value=60)  
         self.fc = tk.StringVar(value='150, 250')  
@@ -66,12 +66,14 @@ class Task7:
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas.get_tk_widget().grid(row=8, column=0, columnspan=2, pady=10)
 
-        self.path1= 'task7_files\FIR test cases\Testcase 1\LPFCoefficients.txt'
+        self.path1 = 'task7_files\FIR test cases\Testcase 1\LPFCoefficients.txt'
         self.path3 = 'task7_files\FIR test cases\Testcase 3\HPFCoefficients.txt'
         self.path5 = 'task7_files\FIR test cases\Testcase 5\BPFCoefficients.txt'
         self.path7 = 'task7_files\FIR test cases\Testcase 7\BSFCoefficients.txt'
 
-        self.path8 = 'task7_files\FIR test cases\Testcase 8\ecg400.txt'
+        self.path2 = 'task7_files\FIR test cases\Testcase 2\ecg_low_pass_filtered.txt'
+        self.path6 = 'task7_files\FIR test cases\Testcase 6\ecg_band_pass_filtered.txt'
+        self.path8 = 'task7_files\FIR test cases\Testcase 8\ecg_band_stop_filtered.txt'
 
     def print_filter_parameters(self):
         filter_type = self.filter_type.get().lower() 
@@ -112,20 +114,18 @@ class Task7:
         self.print_filter_parameters()
 
 
-        window_type, window_constant = choose_window(stop_atten)
-        N = calculate_N(transition_band, window_constant, fs)
-        indices, coefficients = design_fir_filter(filter_type, fs, fc, window_type, N, transition_band) #filter
+        #indices, coefficients = design_fir_filter(filter_type, fs, fc, stop_atten,transition_band) #filter
+        ecg2 = 'task7_files\FIR test cases\Testcase 2\ecg400.txt'
+        ecg8 = 'task7_files\FIR test cases\Testcase 8\ecg400.txt'
+        ecg6 = 'task7_files\FIR test cases\Testcase 6\ecg400.txt'
+        x, vals = ReadSignalFile(ecg6)
 
-        #x, vals = ReadSignalFile('task7_files\FIR test cases\Testcase 8\ecg400.txt')
-
-        #indices, coefficients = ecg(len(vals), filter_type, fc[0], fc[1], fs, transition_band, stop_atten, vals)
+        indices, coefficients = ecg(filter_type, fc, fs, transition_band, stop_atten, x, vals)
+        Compare_Signals(self.path6, indices, coefficients)
 
         #والقائمة تطول
         # Save coefficients to file
         np.savetxt("FIR_Coefficients.txt", np.column_stack((indices, coefficients)), fmt="%d %.10f")
-        Compare_Signals(self.path7, indices, coefficients)
-
-
         self.plot_filter(coefficients)
 
 
@@ -163,12 +163,15 @@ def calculate_N(transition_band, window_constant, fs):
         N += 1  # Ensure N is odd
     return N
 
-def design_fir_filter(filter_type, fs, fc,window_type, N, transition_band):
+def design_fir_filter(filter_type, fs, fc, stop_atten, transition_band):
     
     if filter_type in ['low', 'high']:
         fc_adjusted = fc
     else:
         fc_adjusted = [fc[0], fc[1]]
+
+    window_type, window_constant = choose_window(stop_atten)
+    N = calculate_N(transition_band, window_constant, fs)
 
     hd, middleindex = ideal_impulse_response(filter_type, fc_adjusted, N, fs, transition_band)
     w = compute_window(N, window_type)
@@ -266,21 +269,89 @@ def compute_window(N, window_type):
     return window
     
 
-def ecg(N, filter_type, fc_low, fc_high, fs, transition_band, stop_atten, ecg_signal):
-    M = N-1 // 2
 
-    if(filter_type == 'bandstop'):
-        # Ideal low-pass and high-pass filters
-        hd_low = np.sinc(2 * fc_low * (N) / fs)
-        hd_high = np.sinc(2 * fc_high * (N) / fs)
-        hd = hd_low - hd_high
+def ecg(filter_type, fc, fs, transition_band, stop_atten, ecg_indices, ecg_vals):
+    # Design the filter (assumed function)
+    h_indices, h_vals = design_fir_filter(filter_type, fs, fc, stop_atten, transition_band)
+    
+    method1 = True
+    # Direct convolution (Method 1)
+    if(method1):
+        indices, y = convolve(ecg_indices, ecg_vals, h_indices, h_vals)
+    # Convolution using DFT (Method 2)
+    else:
+        indices, y = convolve_dft(ecg_indices, ecg_vals, h_indices, h_vals)
 
-    window_type, window_constant = choose_window(stop_atten)
-    w = compute_window(N, window_type)
-    #N = calculate_N(transition_band, window_constant, fs)
 
-    h = hd * w
-    y = np.convolve(ecg_signal, h, mode='same')  # Convolution with 'same' mode to maintain signal length
-    indices = np.arange(-len(y)//2 +1, len(y)//2 +1)
+    return indices, y
 
-    return indices , y
+def convolve(ecg_indices, ecg_vals, h_indices, h_vals):
+    y= {}
+
+    # Find the total length of the result after convolution
+    if(ecg_indices[0] <= h_indices[0]):
+        h = ecg_indices, ecg_vals
+        x = h_indices, h_vals
+        start = ecg_indices[0]
+        end = h_indices[-1] + ecg_indices[-1]
+    else:
+        x = ecg_indices, ecg_vals
+        h = h_indices, h_vals
+        start = h_indices[0]
+        end =  h_indices[-1] + ecg_indices[-1]
+    
+
+    for n in range(start, end+1):
+        y[n] = 0
+        for k in x[0]:
+            if((n - k) in h[0]):
+                y[n] += x[1][k] * h[1][n-k]
+
+
+    indices = list(y.keys())
+    values = list(y.values())
+
+    return indices, values
+
+
+def convolve_dft(ecg_indices, ecg_vals, h_indices, h_vals):
+    # Get the lengths of both signals
+    N_ecg = len(ecg_vals)
+    N_filter = len(h_vals)
+    N = N_ecg + N_filter - 1  # Length of output signal
+
+    ecg_padded = np.pad(ecg_vals, (0, N - N_ecg), mode='constant')
+    filter_padded = np.pad(h_vals, (0, N - N_filter), mode='constant')
+
+    ecg_dft = dft(ecg_padded)
+    filter_dft = dft(filter_padded)
+
+    result_dft = ecg_dft * filter_dft
+    result_vals = idft(result_dft)
+
+    # Adjust indices
+    output_indices = np.arange(ecg_indices[0] + h_indices[0], ecg_indices[-1] + h_indices[-1] + 1)
+    return output_indices, result_vals
+
+
+def dft(values):
+    N = len(values)
+    samples = np.zeros(N, dtype=complex)
+    
+    for n in range(N):
+        for k in range(N):
+            samples[n] += values[k] * np.exp(-2j * np.pi * k * n / N)
+    
+    return samples
+
+
+def idft(input_signal):
+    N = len(input_signal)
+    samples = np.zeros(N, dtype=complex)
+    
+    for n in range(N):
+        for k in range(N):
+            samples[n] += input_signal[k] * np.exp(2j * np.pi * k * n / N)
+    
+    # Normalize the result and return the real part
+    return np.real(samples / N)
