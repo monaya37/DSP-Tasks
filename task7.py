@@ -20,7 +20,7 @@ class Task7:
         self.frame = tk.Frame(self.parent)
         self.frame.grid(row=1, column=0, sticky="nsew")
 
-        self.pady = 3
+        self.pady = 1
 
         # Center all rows and columns in the frame
         for i in range(8):  # Adjust number of rows based on content
@@ -30,13 +30,13 @@ class Task7:
 
         large_font = ('Helvetica', 14)
 
-
         self.filter_type = tk.StringVar()  
         self.fs = tk.IntVar()  
         self.stop_atten = tk.IntVar()  
         self.fc = tk.StringVar()  
         self.transition_band = tk.StringVar()  
-
+        self.test_number = tk.StringVar()  # Variable for test number input
+        self.selected_option = tk.StringVar(value="Direct")
 
         ttk.Label(self.frame, text="Filter Type (low, high, bandpass, bandstop):", font=large_font).grid(row=2, column=0, pady=self.pady, sticky="w")
         ttk.Entry(self.frame, textvariable=self.filter_type, font=large_font).grid(row=2, column=1, pady=self.pady)
@@ -59,12 +59,33 @@ class Task7:
 
         # Generate the signal
         generate_button = ttk.Button(self.frame, text="Generate Signal", command=self.choose_test, style='Large.TButton')
-        generate_button.grid(row=7, column=0, columnspan=2, rowspan= 1, pady=10)
+        generate_button.grid(row=8, column=0, columnspan=2, rowspan=1, pady=10)
+
+
+        # Create a row for radio buttons and test number box
+        option_frame = tk.Frame(self.frame)
+        option_frame.grid(row=7, column=0, sticky="w")
+        self.padx = 2
+        # Radio buttons for "Direct" and "Fast"
+        ttk.Label(option_frame, text="Select Option:", font=large_font).grid(row=0, column=0, pady=self.pady, sticky="w")
+        # Bullet points
+        direct_radio = tk.Radiobutton(option_frame, text="Direct", variable=self.selected_option, value="Direct", font=large_font)
+        direct_radio.grid(row=0, column=1, padx = self.padx ,sticky="w")
+
+        fast_radio = tk.Radiobutton(option_frame, text="Fast", variable=self.selected_option, value="Fast", font=large_font)
+        fast_radio.grid(row=0, column=2, padx = self.padx, sticky="w")
+
+        # Test number box
+        test_frame = tk.Frame(self.frame)
+        test_frame.grid(row=7, column=1, sticky="w")
+        ttk.Label(test_frame, text="Test Number:", font=large_font).grid(row=7, column=0, pady=self.pady, sticky="w")
+        test_number_entry = ttk.Entry(test_frame, textvariable=self.test_number, font=large_font, width=9)
+        test_number_entry.grid(row=7, column=1, padx = self.padx, pady=self.pady, sticky="w")
 
         # Figure and canvas for plotting
         self.fig, self.ax = plt.subplots()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
-        self.canvas.get_tk_widget().grid(row=8, column=0, columnspan=2, pady=10)
+        self.canvas.get_tk_widget().grid(row=9, column=0, columnspan=2, pady=10)
 
 
             # Paths stored dynamically
@@ -94,6 +115,8 @@ class Task7:
             4: 'task7_files\FIR test cases\Testcase 7\Filter Specifications.txt'
         }
 
+        
+    
 
     def read_filter_specifications(self, filepath):
         filter_params = {}
@@ -102,7 +125,6 @@ class Task7:
             print(f"File not found: {filepath}")
             return filter_params
         
-        # Open the file and read the lines
         with open(filepath, 'r') as file:
             for line in file:
                 line = line.strip()
@@ -142,18 +164,21 @@ class Task7:
 
 
 
-    def choose_test(self, test = 4):
+    def choose_test(self):
+        option = self.selected_option.get()
+        test = int(self.test_number.get())
+
         filter_params = self.read_filter_specifications(self.filter_specifications_paths[test])
 
         ecg_indices, ecg_coefficients = ReadSignalFile(self.ecg_input_paths[test])
 
         filter_indices, filter_coefficients = design_fir_filter(filter_params['FilterType'], filter_params['FS'], filter_params['FC'], filter_params['StopBandAttenuation'], filter_params['TransitionBand'])
-        indices, coefficients = ecg(ecg_indices, ecg_coefficients, filter_indices, filter_coefficients)
+        indices, coefficients = ecg(ecg_indices, ecg_coefficients, filter_indices, filter_coefficients, option)
 
         Compare_Signals(self.filter_output_paths[test], filter_indices, filter_coefficients)
         Compare_Signals(self.ecg_output_paths[test], indices, coefficients)
 
-        np.savetxt("FIR_Coefficients.txt", np.column_stack((filter_indices, filter_coefficients)), fmt="%d %.10f")
+        np.savetxt("FIR_Coefficients.txt", np.column_stack((indices, coefficients)), fmt="%d %.10f")
         self.plot_filter(coefficients)
 
 
@@ -292,73 +317,64 @@ def compute_window(N, window_type):
     
 
 
-def ecg(ecg_indices, ecg_vals, filter_indices, filter_coefficients):
-    
+def ecg(ecg_indices, ecg_vals, filter_indices, filter_coefficients, option):
     indices = np.arange(ecg_indices[0] + filter_indices[0], ecg_indices[-1] + filter_indices[-1] + 1)
 
-    method1 = True
-    # Direct convolution (Method 1)
-    if(method1):
-        #indices, y = convolve(ecg_indices, ecg_vals, filter_indices, filter_coefficients)
+    
+    if(option == 'Direct'):
         y = direct_convolution(ecg_vals, filter_coefficients)
     # Convolution using DFT (Method 2)
     else:
-        indices, y = convolve_dft(ecg_indices, ecg_vals, filter_indices, filter_coefficients)
+        y = fast_convolution( ecg_vals, filter_coefficients)
         
 
     return indices, y
 
-
-def convolve_dft(ecg_indices, ecg_vals, h_indices, h_vals):
-    # Get the lengths of both signals
-    N_ecg = len(ecg_vals)
-    N_filter = len(h_vals)
-    N = N_ecg + N_filter - 1  # Length of output signal
-
-    ecg_vals = np.array(ecg_vals)
-    print("h_val.shape = ", h_vals.shape)
-    print("egc_val.shape = ", ecg_vals.shape)
-
-
-    ecg_dft = dft(ecg_vals)
-    filter_dft = dft(h_vals)
-    print("filter_dft.shape = ", filter_dft.shape)
-    print("ecg_dft.shape = ", ecg_dft.shape)
-
-    filter_dft_padded = np.pad(filter_dft, (0, N - N_filter), mode='constant')
-    ecg_dft_padded = np.pad(ecg_dft, (0, N - N_ecg), mode='constant')
-
-    print("filter_dft_padded.shape = ", filter_dft_padded.shape)
-    print("ecg_dft_padded.shape = ", ecg_dft_padded.shape)
-
-    result_dft = filter_dft_padded * ecg_dft_padded 
-    result_vals = idft(result_dft)
-
-    # Adjust indices
-    output_indices = np.arange(ecg_indices[0] + h_indices[0], ecg_indices[-1] + h_indices[-1] + 1)
-    return output_indices, result_vals
+def fast_convolution(x, h):
+    N = len(x)
+    M = len(h)
+    
+    # Zero-pad both x and h to length N + M - 1
+    N_pad = N + M - 1
+    x_padded = np.pad(x, (0, N_pad - N), mode='constant')
+    h_padded = np.pad(h, (0, N_pad - M), mode='constant')
+    
+    # Step 3: Compute the DFT of the zero-padded signals
+    X = dft(x_padded)  # DFT of x
+    H = dft(h_padded)  # DFT of h
+    
+    # Step 4: Multiply in the frequency domain
+    Y_freq = X * H
+    
+    # Step 5: Compute the inverse DFT of the result
+    y_padded = idft(Y_freq)  # IDFT of the result
+    
+    # Step 6: Return the valid part of the convolution (first N + M - 1 samples)
+    return np.real(y_padded[:N + M - 1])
 
 
-def dft(values):
-    N = len(values)
-    samples = np.zeros(N, dtype=complex)
+
+
+def dft(x):
+    N = len(x)
+    X = np.zeros(N, dtype=complex)  
+    
+    for k in range(N):
+        for n in range(N):
+            X[k] += x[n] * np.exp(-2j * np.pi * k * n / N)
+    
+    return X
+
+
+def idft(X):
+    N = len(X)
+    x = np.zeros(N, dtype=complex)  # Initialize the time domain array
     
     for n in range(N):
         for k in range(N):
-            samples[n] += values[k] * np.exp(-2j * np.pi * k * n / N)
+            x[n] += X[k] * np.exp(2j * np.pi * k * n / N)
     
-    return samples
-
-
-def idft(input_signal):
-    N = len(input_signal)
-    samples = np.zeros(N, dtype=complex)
-    
-    for n in range(N):
-        for k in range(N):
-            samples[n] += input_signal[k] * np.exp(2j * np.pi * k * n / N)
-    
-    return np.real(samples / N)
+    return x / N 
 
 def direct_convolution(x, h):
     N = len(x)
@@ -371,3 +387,4 @@ def direct_convolution(x, h):
             if 0 <= n - m < N:
                 y[n] += h[m] * x[n - m]
     return y
+
