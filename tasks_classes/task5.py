@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from functions import *
+from tasks_classes.functions import *
 import math
 from task5_files.signalcompare import SignalComapreAmplitude, SignalComaprePhaseShift
 np.set_printoptions(precision=10)  # Adjust the precision as needed

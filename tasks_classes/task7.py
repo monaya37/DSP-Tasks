@@ -3,8 +3,8 @@ from tkinter import ttk, messagebox
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from functions import *
-from CompareSignal import *
+from tasks_classes.functions import *
+from tasks_classes.CompareSignal import *
 import math
 
 
@@ -115,8 +115,12 @@ class Task7:
             4: 'task7_files\FIR test cases\Testcase 7\Filter Specifications.txt'
         }
 
+    def display(self):
+        self.frame.grid(row=1, column=0, columnspan=2, sticky='nsew')
+
+    def hide(self):
+        self.frame.grid_forget()
         
-    
 
     def read_filter_specifications(self, filepath):
         filter_params = {}
@@ -167,26 +171,20 @@ class Task7:
     def choose_test(self):
         option = self.selected_option.get()
         test = int(self.test_number.get())
-
         filter_params = self.read_filter_specifications(self.filter_specifications_paths[test])
+
 
         ecg_indices, ecg_coefficients = ReadSignalFile(self.ecg_input_paths[test])
 
         filter_indices, filter_coefficients = design_fir_filter(filter_params['FilterType'], filter_params['FS'], filter_params['FC'], filter_params['StopBandAttenuation'], filter_params['TransitionBand'])
-        indices, coefficients = ecg(ecg_indices, ecg_coefficients, filter_indices, filter_coefficients, option)
+
+        indices, coefficients = apply_convolution(ecg_indices, ecg_coefficients, filter_indices, filter_coefficients, option)
 
         Compare_Signals(self.filter_output_paths[test], filter_indices, filter_coefficients)
         Compare_Signals(self.ecg_output_paths[test], indices, coefficients)
 
         np.savetxt("FIR_Coefficients.txt", np.column_stack((indices, coefficients)), fmt="%d %.10f")
         self.plot_filter(coefficients)
-
-
-    def display(self):
-        self.frame.grid(row=1, column=0, columnspan=2, sticky='nsew')
-
-    def hide(self):
-        self.frame.grid_forget()
 
         
     def plot_filter(self, coefficients):
@@ -220,11 +218,10 @@ def design_fir_filter(filter_type, fs, fc, stop_atten, transition_band):
     window_type, window_constant = choose_window(stop_atten)
     N = calculate_N(transition_band, window_constant, fs)
 
-    hd, middleindex = ideal_impulse_response(filter_type, fc_adjusted, N, fs, transition_band)
+    hd = ideal_impulse_response(filter_type, fc_adjusted, N, fs, transition_band)
     w = compute_window(N, window_type)
     h = np.array(hd) * np.array(w)
-    print("h[M]: ", h[middleindex])
-    print("w[M]: ", w[middleindex])
+
     indices = np.arange(-len(h)//2 +1, len(h)//2 +1)
 
     return indices, h
@@ -249,7 +246,7 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
     for n in range(N):
         if n == M:
             if filter_type == 'low pass':
-                h[n] = 2 * fc_low / fs
+                h[n] = (2 * fc_low / fs)
             elif filter_type == 'high pass':
                 h[n] = 1 - 2 * fc_high / fs
             elif filter_type == 'band pass':
@@ -257,7 +254,6 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
             elif filter_type == 'band stop':
                 old = (2 * (fc[1] + transition_band/2)/fs) - (2 * (fc[0] - transition_band/2)/fs)
                 h[n] = 2 - (2 * (fc[1] - transition_band/2)/fs) - (2 * (fc[0] + transition_band/2)/fs) -old
-                #h[n] = 2 - 4*(fc[1] -fc[0])/fs
 
         else:
             if filter_type == 'low pass':
@@ -272,7 +268,7 @@ def ideal_impulse_response(filter_type, fc, N, fs, transition_band):
                 h_high = 2 * fc_high/fs * np.sin(2 * np.pi * fc_high * (n - M) / fs) / (2 * np.pi * (n - M) * fc_high / fs)
                 h_low = 2 * fc_low/fs * np.sin(2* np.pi * fc_low * (n - M) / fs) / (2* np.pi * (n - M) * fc_low / fs)
                 h[n] =  h_low- h_high
-    return h ,M
+    return h 
 
 def choose_window(stop_atten):
     if stop_atten <= 21:
@@ -289,16 +285,15 @@ def compute_window(N, window_type):
     window = np.zeros(N)
     print('window type is: ', window_type)
 
-    # Handle the window type
     if window_type == 'hamming':
         index = 0
-        for n in range(-N//2, N//2):  # Loop from -N/2 to N/2
+        for n in range(-N//2, N//2): 
             window[index] = 0.54 + 0.46 * np.cos(2 * np.pi * n / N)
             index+=1
             
     elif window_type == 'hanning':
         index = 0
-        for n in range(-N//2, N//2):  # Loop from -N/2 to N/2
+        for n in range(-N//2, N//2):  
             index = 0
             window[index] = 0.5 + 0.5 * np.cos(2 * np.pi * n / N)
             index+=1
@@ -306,50 +301,55 @@ def compute_window(N, window_type):
     elif window_type == 'blackman':
         index = 0
         N = N - 1
-        for n in range(-N//2, N//2):  # Loop from -N/2 to N/2
+        for n in range(-N//2, N//2):  
             window[index] = round(0.42 + (0.5 * np.cos(2 * np.pi * n/N)) + (0.08* np.cos(4 * np.pi * n /N)),6)
             index+=1
             
     else:
-        window = np.ones(N)  # Rectangular window
+        window = np.ones(N) 
 
     return window
     
 
 
-def ecg(ecg_indices, ecg_vals, filter_indices, filter_coefficients, option):
+def apply_convolution(ecg_indices, ecg_vals, filter_indices, filter_coefficients, option):
+
     indices = np.arange(ecg_indices[0] + filter_indices[0], ecg_indices[-1] + filter_indices[-1] + 1)
 
-    
     if(option == 'Direct'):
         y = direct_convolution(ecg_vals, filter_coefficients)
-    # Convolution using DFT (Method 2)
     else:
-        y = fast_convolution( ecg_vals, filter_coefficients)
+        y = fast_convolution( ecg_vals, filter_coefficients) #fft
         
-
     return indices, y
+
+def direct_convolution(x, h):
+    N = len(x)
+    M = len(h)
+    y = np.zeros(N + M - 1)
+    
+    # Perform the convolution
+    for n in range(len(y)):
+        for m in range(M):
+            if 0 <= n - m < N:
+                y[n] += h[m] * x[n - m]
+    return y
 
 def fast_convolution(x, h):
     N = len(x)
     M = len(h)
-    
-    # Zero-pad both x and h to length N + M - 1
     N_pad = N + M - 1
+
     x_padded = np.pad(x, (0, N_pad - N), mode='constant')
     h_padded = np.pad(h, (0, N_pad - M), mode='constant')
     
-    # Step 3: Compute the DFT of the zero-padded signals
-    X = dft(x_padded)  # DFT of x
-    H = dft(h_padded)  # DFT of h
+    X = dft(x_padded)  
+    H = dft(h_padded)  
     
-    # Step 4: Multiply in the frequency domain
     Y_freq = X * H
     
-    # Step 5: Compute the inverse DFT of the result
-    y_padded = idft(Y_freq)  # IDFT of the result
-    
-    # Step 6: Return the valid part of the convolution (first N + M - 1 samples)
+    y_padded = idft(Y_freq)  
+
     return np.real(y_padded[:N + M - 1])
 
 
@@ -368,7 +368,7 @@ def dft(x):
 
 def idft(X):
     N = len(X)
-    x = np.zeros(N, dtype=complex)  # Initialize the time domain array
+    x = np.zeros(N, dtype=complex)  
     
     for n in range(N):
         for k in range(N):
@@ -376,15 +376,4 @@ def idft(X):
     
     return x / N 
 
-def direct_convolution(x, h):
-    N = len(x)
-    M = len(h)
-    y = np.zeros(N + M - 1)
-    
-    # Perform the convolution
-    for n in range(len(y)):
-        for m in range(M):
-            if 0 <= n - m < N:
-                y[n] += h[m] * x[n - m]
-    return y
 

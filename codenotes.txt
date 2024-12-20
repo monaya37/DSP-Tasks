@@ -1,2 +1,0 @@
-signal = read_file(path)
-signal ==> indecies , values, dict[index] = value

@@ -1,12 +1,12 @@
 # App.py
 import tkinter as tk
-from task1 import Task1
-from task2 import Task2
-from task3 import Task3
-from task4 import Task4
-from task5 import Task5
-from task6 import Task6
-from task7 import Task7
+from tasks_classes.task1 import Task1
+from tasks_classes.task2 import Task2
+from tasks_classes.task3 import Task3
+from tasks_classes.task4 import Task4
+from tasks_classes.task5 import Task5
+from tasks_classes.task6 import Task6
+from tasks_classes.task7 import Task7
 
 class App:
     def __init__(self, root):

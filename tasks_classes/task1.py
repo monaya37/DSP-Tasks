@@ -1,6 +1,6 @@
 # task1.py
 import tkinter as tk
-from functions import *
+from tasks_classes.functions import *
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 

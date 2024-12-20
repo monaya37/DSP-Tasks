@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from functions import *
+from tasks_classes.functions import *
 from task3_files import QuanTest1, QuanTest2 
 import math
 

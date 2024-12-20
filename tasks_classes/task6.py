@@ -4,7 +4,7 @@ from tkinter import ttk, messagebox
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from functions import *
+from tasks_classes.functions import *
 import math
 from task6_files.CompareSignal import Compare_Signals
 #np.set_printoptions(precision=10)  # Adjust the precision as needed
@@ -51,17 +51,13 @@ def calculate_normalization(a, b, rj):
         return p
 
 def calculate_time_delay(signal1, signal2, sampling_frequency, expected_lag=None):
-    print("Starting correlation calculation...")
 
     # Calculate the periodic cross-correlation
     _, _, correlation_values = correlation(signal1, signal2)
-    print(f"Correlation calculated: {correlation_values}")
-
 
     if expected_lag is not None:
         # Use the expected lag to calculate the time delay
         lag = expected_lag
-        print(f"Using expected lag (j): {lag}")
     else:
         # Find the lag corresponding to the maximum absolute value of the correlation
         max_corr_index = get_max(correlation_values)
