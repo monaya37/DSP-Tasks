@@ -45,8 +45,27 @@ Task 5 allows the user to perform the Discrete Fourier Transform (DFT) and Inver
 ### Task 6: Signal Correlation and Time Delay
 In Task 6, the user can perform correlation on a signal and calculate the time delay between two signals. This is useful for detecting the degree of similarity between signals. The GUI allows the user to visualize the correlation results and time delays.
 
-### Task 7: (قيد التنفيذ)
+### Task 7:
 
+Task 7 allows the user to input filter specifications.
+Based on the input, generate a filter using one of the following window types:
+- **Hamming**
+- **Hanning**
+- **Rectangle**
+- **Blackman**
+
+ Create one of the following filter types:
+- **Low-pass**
+- **High-pass**
+- **Band-pass**
+- **Band-stop**
+The program will output the filter coefficients.
+---
+<div align="center">
+  <img src="https://github.com/monaya37/DSP-Tasks/blob/ccfceedc7ff9218ef724a7a452b1306883311530/Screenshot%202024-12-20%20122452.png" alt="GUI"/>
+</div>
+
+---
 These tasks were done in pairs with my teammate [@AyaNour333](https://github.com/AyaNour333) (**we weren't the best when it came to managment (+_+) but كانت الأفضل على الإطلاق**). 
 Huge thanks to my professor/Drs. for this great course (though I'm not a fan of signals, they still made it fun).
 
