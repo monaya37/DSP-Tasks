@@ -47,6 +47,22 @@ In Task 6, the user can perform correlation on a signal and calculate the time d
 
 ### Task 7: (قيد التنفيذ)
 
+Task 7 allows the user to input filter specifications.
+Based on the input, generate a filter using one of the following window types:
+- **Hamming**
+- **Hanning**
+- **Rectangle**
+- **Blackman**
+
+ Create one of the following filter types:
+- **Low-pass**
+- **High-pass**
+- **Band-pass**
+- **Band-stop**
+The program will output the filter coefficients.
+___
+
+
 These tasks were done in pairs with my teammate [@AyaNour333](https://github.com/AyaNour333) (**we weren't the best when it came to managment (+_+) but كانت الأفضل على الإطلاق**). 
 Huge thanks to my professor/Drs. for this great course (though I'm not a fan of signals, they still made it fun).
 
